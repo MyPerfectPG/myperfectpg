@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "418138450220",
+    "project_id": "myperfectpg-f6a53",
+    "storage_bucket": "myperfectpg-f6a53.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:418138450220:android:7366226c8a65e942642489",
+        "android_client_info": {
+          "package_name": "com.example.myperfectpg"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCG8d6KhvmUCIV_T6VI748rSPvK1WeGvMI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
