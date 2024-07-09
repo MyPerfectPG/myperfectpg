@@ -4,11 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'edit_pg_screen.dart';
 
 class ManagePGScreen extends StatelessWidget {
-  final String pgId;
 
-  ManagePGScreen({required this.pgId});
   Future<void> _deletePG(String id) async {
-    await FirebaseFirestore.instance.collection('pgs').doc(pgId).delete();
+    await FirebaseFirestore.instance.collection('pgs').doc(id).delete();
   }
 
   @override
@@ -22,7 +20,7 @@ class ManagePGScreen extends StatelessWidget {
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('pgs')
-            .where('ownerId', isEqualTo: user!.uid)
+            .where('ownerId', isEqualTo: user)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -35,65 +33,47 @@ class ManagePGScreen extends StatelessWidget {
 
           final pgs = snapshot.data!.docs;
 
-          return ListView.builder(
+          return ListView(
             scrollDirection: Axis.vertical,
-            itemCount: pgs.length,
-            itemBuilder: (context, index) {
-              var pg = pgs[index].data() as Map<String, dynamic>;
-              var pgId = pgs[index].id;
-
-              children:
-              snapshot.data!.docs.map((doc) {
-                return Container(
-                  width: MediaQuery
-                      .of(context)
-                      .size
-                      .width / 0.2,
-                  height: 100,
-                  margin: const EdgeInsets.only(top: 15, left: 15, right: 15),
-                  decoration: BoxDecoration(
-                      color: Colors.white70,
-                      borderRadius: BorderRadius.circular(20)
+            children: snapshot.data!.docs.map((doc) {
+              return Container(
+                width: MediaQuery.of(context).size.width/0.2,
+                height: 100,
+                margin: const EdgeInsets.only(top: 15,left: 15,right: 15),
+                decoration: BoxDecoration(
+                    color: Colors.white70,
+                    borderRadius: BorderRadius.circular(20)
+                ),
+                child: ListTile(
+                  title: Text(doc['name'],
+                    style: const TextStyle(
+                        color: Colors.black, fontWeight: FontWeight.bold, fontSize: 30),),
+                  subtitle: Text(doc['location'],
+                    style: const TextStyle(
+                        color: Colors.black, fontWeight: FontWeight.w500, fontSize: 25),),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.edit_rounded,size: 50,color: Colors.black,),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EditPGScreen(pgId: doc.id),
+                            ),
+                          );
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.delete_outline_outlined,size: 50,color: Colors.red,),
+                        onPressed: () => _deletePG(doc.id),
+                      ),
+                    ],
                   ),
-                  child: ListTile(
-                    title: Text(pg['name'],
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 25,),),
-                    subtitle: Text(pg['location'],
-                      style: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.normal,
-                          fontSize: 20),),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            Icons.edit_rounded, size: 40, color: Colors.black,),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    EditPGScreen(pgId: doc.id),
-                              ),
-                            );
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete_outline_outlined, size: 40,
-                            color: Colors.red,),
-                          onPressed: () => _deletePG(doc.id),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+                ),
               );
-            },
+            }).toList(),
           );
         },
     ),

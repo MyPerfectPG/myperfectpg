@@ -24,7 +24,7 @@ class _AddPGScreenState extends State<AddPGScreen> {
   final _storage = FirebaseStorage.instance;
   final _picker = ImagePicker();
 
-  String _gender = 'Any';
+  String _gender = 'Both';
   String _sharing = 'Single';
   String _fooding = 'Not Included';
   String _elecbill = 'Not Included';
@@ -74,7 +74,7 @@ class _AddPGScreenState extends State<AddPGScreen> {
         'summary': _summaryController.text.trim(),
         'price': int.parse(_priceController.text.trim()),
         'images': [], // Add image URLs after uploading them to Firebase Storage
-        'ownerId': user?.uid,
+        'ownerId': user!.uid,
       });
       Navigator.pop(context);
     } catch (e) {
@@ -109,7 +109,7 @@ class _AddPGScreenState extends State<AddPGScreen> {
               SizedBox(height: 10,),
               DataTextField('Price', Icons.currency_rupee_outlined, false, _priceController),
               SizedBox(height: 10,),
-              DropdownButtonFormField(/*value: _gender,*/items: <String>['Boys', 'Girls', 'Any']
+              DropdownButtonFormField(/*value: _gender,*/items: <String>['Boys', 'Girls', 'Both']
                   .map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,

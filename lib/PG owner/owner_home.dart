@@ -230,7 +230,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                             left: MediaQuery.of(context).size.width*.7,
                             child: GestureDetector(
                               onTap: (){
-                                    Navigator.push(context, MaterialPageRoute(builder: (context) => ManagePGScreen(pgId: user!.uid)));
+                                    Navigator.push(context, MaterialPageRoute(builder: (context) => ManagePGScreen()));
                               },
                               child: Container(
                                 height: 64,

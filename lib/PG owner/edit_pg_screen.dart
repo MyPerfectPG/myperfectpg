@@ -20,7 +20,7 @@ class _EditPGScreenState extends State<EditPGScreen> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _otherServiceController = TextEditingController();
 
-  String _gender = 'Any';
+  String _gender = 'Both';
   String _sharing = 'Single';
   String _fooding = 'Not Included';
   String _elecbill = 'Not Included';
@@ -114,7 +114,7 @@ class _EditPGScreenState extends State<EditPGScreen> {
               SizedBox(height: 10,),
               DataTextField('Price', Icons.currency_rupee_outlined, false, _priceController),
               SizedBox(height: 10,),
-              DropdownButtonFormField(value: _gender,items: <String>['Boys', 'Girls', 'Any']
+              DropdownButtonFormField(value: _gender,items: <String>['Boys', 'Girls', 'Both']
                   .map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
