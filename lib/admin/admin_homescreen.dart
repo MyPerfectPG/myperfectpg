@@ -11,7 +11,37 @@ class AdminHomeScreen extends StatefulWidget {
   State<AdminHomeScreen> createState() => _AdminHomeScreenState();
 }
 
+
 class _AdminHomeScreenState extends State<AdminHomeScreen> with SingleTickerProviderStateMixin {
+
+  String? uid;
+
+  @override
+  void initState() {
+    super.initState();
+    getCurrentUser();
+  }
+
+  void getCurrentUser() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        uid = user.uid;
+      });
+      if (uid == null) {
+        print('User is not authenticated.');
+        // Handle the case where the user is not authenticated
+        // For example, navigate to login screen or show a dialog
+      } else {
+        print('User is authenticated: ${uid}');
+      }
+    }
+    else {
+      print('User is not authenticated.');
+    }
+  }
+
+
   Widget _navBar() {
     return Container(
       height: 65,

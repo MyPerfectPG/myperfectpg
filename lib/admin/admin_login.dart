@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:myperfectpg/Page/reset_password.dart';
 import 'package:myperfectpg/Page/signup.dart';
@@ -19,6 +20,54 @@ class _LoginScreenState extends State<LoginScreen> {
 
   TextEditingController _passwordTextController = TextEditingController();
   TextEditingController _emailTextController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<void> _login() async {
+    final String email = _emailTextController.text;
+    final String password = _passwordTextController.text;
+
+    try {
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      DocumentSnapshot adminSnapshot = await _firestore
+          .collection('Admin')
+          .doc(userCredential.user?.uid)
+          .get();
+
+      if (adminSnapshot.exists) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => AdminHomeScreen()),
+        );
+      } else {
+        await _auth.signOut();
+        _showError('Not an admin');
+      }
+    } catch (e) {
+      _showError(e.toString());
+    }
+  }
+  void _showError(String error) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Error'),
+        content: Text(error),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -41,8 +90,8 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(
                 height: 20,
               ),
-              //forgetPassword(context),
-              firebaseUIButton(context, "Sign In", (){
+              forgetPassword(context),
+              firebaseUIButton(context, "Sign In", _login/*(){
                 try{
                   FirebaseFirestore.instance.collection("Admin").get().then((snapshot) {
                     snapshot.docs.forEach((result) async {
@@ -75,7 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 }catch (error) {
                   print("Error ${error.toString()}"); // Return the error code if user creation fails
                 }
-              }
+              }*/
               ),
               //signUpOption()
             ],

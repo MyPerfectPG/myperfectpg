@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:myperfectpg/PG%20owner/owner_home.dart';
 import 'package:myperfectpg/Page/reset_password.dart';
@@ -16,6 +17,52 @@ class OwnerLoginScreen extends StatefulWidget {
 class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
   TextEditingController _passwordTextController = TextEditingController();
   TextEditingController _emailTextController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<void> _login() async {
+    final String email = _emailTextController.text;
+    final String password = _passwordTextController.text;
+
+    try {
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      DocumentSnapshot adminSnapshot = await _firestore
+          .collection('pg_owners')
+          .doc(userCredential.user?.uid)
+          .get();
+
+      if (adminSnapshot.exists) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+        );
+      } else {
+        await _auth.signOut();
+        _showError('Not an PG Owner');
+      }
+    } catch (e) {
+      _showError(e.toString());
+    }
+  }
+  void _showError(String error) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Error'),
+        content: Text(error),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,22 +85,22 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
                 const SizedBox(
                   height: 20,
                 ),
-                //forgetPassword(context),
-                firebaseUIButton(context, "Sign In", (){
+                forgetPassword(context),
+                firebaseUIButton(context, "Sign In", _login/*(){
                   try{
                     FirebaseFirestore.instance.collection("pg_owners").get().then((snapshot) {
                       snapshot.docs.forEach((result) async {
                         if (result.data()['name'] != _emailTextController.text.trim()) {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              backgroundColor: Colors.white,
+                              backgroundColor: Colors.black,
                               content: Text(
                                 "Your id is not correct",
                                 style: TextStyle(fontSize: 18.0),
                               )));
-                        } else if (result.data()['phone'] !=
+                        } else if (result.data()['password'] !=
                             _passwordTextController.text.trim()) {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              backgroundColor: Colors.white,
+                              backgroundColor: Colors.black,
                               content: Text(
                                 "Your password is not correct",
                                 style: TextStyle(fontSize: 18.0),
@@ -61,6 +108,7 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
                         } else {
                           Route route = MaterialPageRoute(builder: (context) => HomeScreen());
                           var pref= await SharedPreferences.getInstance();
+                          pref.setString('name',_emailTextController.toString() );
                           pref.setBool(AuthCheck.KEYLOGIN, true);
                           Navigator.pushReplacement(context, route);
                           // final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -72,7 +120,7 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
                   }catch (error) {
                     print("Error ${error.toString()}"); // Return the error code if user creation fails
                   }
-                }
+                }*/
                 ),
                 //signUpOption()
               ],

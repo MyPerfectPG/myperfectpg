@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/widgets.dart';
 import 'package:myperfectpg/PG%20owner/pg_login.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../admin/admin_auth_check.dart';
 import 'add_pg_screen.dart';
 import 'manage_pg_screen.dart';
 
@@ -15,7 +17,79 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
 
+  /*User? user;
 
+  @override
+  void initState() {
+    super.initState();
+    checkAuthState(); // Check authentication state when the screen initializes
+  }
+
+  void checkAuthState() {
+    user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      print('User is not authenticated.');
+      // Handle the case where the user is not authenticated
+      // For example, navigate to login screen or show a dialog
+    } else {
+      print('User is authenticated: ${user!.uid}');
+    }
+  }*/
+  /*String? uid;
+  Map<String, dynamic>? pgOwnerData;*/
+
+  String? uid;
+
+  @override
+  void initState() {
+    super.initState();
+    getCurrentUser();
+  }
+
+  void getCurrentUser() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        uid = user.uid;
+      });
+      if (uid == null) {
+        print('User is not authenticated.');
+        // Handle the case where the user is not authenticated
+        // For example, navigate to login screen or show a dialog
+      } else {
+        print('User is authenticated: ${uid}');
+      }
+    }
+    else {
+      print('User is not authenticated.');
+    }
+  }
+
+  /*@override
+  void initState() {
+    super.initState();
+    getCurrentUser();
+  }
+
+  void getCurrentUser() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        uid = user.uid;
+      });
+      checkAuthState(user.uid);
+    }
+  }
+  void checkAuthState(String uid)async {
+
+    if (uid == null) {
+      print('User is not authenticated.');
+      // Handle the case where the user is not authenticated
+      // For example, navigate to login screen or show a dialog
+    } else {
+      print('User is authenticated: ${uid}');
+    }
+  }*/
   // @override
   // void initState() {
   //   super.initState();
@@ -94,9 +168,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         .snapshots();
   }
 
+
   @override
   Widget build(BuildContext context) {
-    final User? user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
       appBar: AppBar(
@@ -113,6 +187,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             icon: Icon(Icons.logout),
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
+              var pref= await SharedPreferences.getInstance();
+              pref.setBool(AuthCheck.KEYLOGIN, false);
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => OwnerLoginScreen()),

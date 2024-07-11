@@ -13,6 +13,8 @@ class AddPGScreen extends StatefulWidget {
 
 class _AddPGScreenState extends State<AddPGScreen> {
   final User? user = FirebaseAuth.instance.currentUser;
+
+
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _landmarkController = TextEditingController();
@@ -41,15 +43,128 @@ class _AddPGScreenState extends State<AddPGScreen> {
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
-      final ref = _storage.ref().child('photos').child(DateTime.now().toString());
-      await ref.putFile(File(pickedFile.path));
-      final url = await ref.getDownloadURL();
       setState(() {
-        _images.add(url);
+        _images.add(pickedFile.path);
       });
     }
   }
 
+  /*Future<List<String>> _uploadImages() async {
+    List<String> imageUrls = [];
+    for (String imagePath in _images) {
+      try {
+        print('Attempting to upload file: $imagePath');
+        File file = File(imagePath);
+
+        // Check if the file exists
+        if (await file.exists()) {
+          final ref = _storage.ref().child('photos').child(DateTime.now().toString());
+          final uploadTask = ref.putFile(file);
+          final snapshot = await uploadTask.whenComplete(() {});
+          final url = await snapshot.ref.getDownloadURL();
+          imageUrls.add(url);
+          print('Successfully uploaded file: $url');
+        } else {
+          print('File does not exist: $imagePath');
+        }
+      } catch (e) {
+        print('Failed to upload image: $e');
+      }
+    }
+    return imageUrls;
+  }*/
+
+  List<String> imageUrls = [];
+
+  Future<List<String>> uploadMultipleImages() async {
+    final picker = ImagePicker();
+    final List<XFile>? images = await picker.pickMultiImage();
+
+    if (images == null || images.isEmpty) {
+      print('No images selected.');
+      // return;
+    }
+
+
+
+    for (XFile image in images!) {
+      File imageFile = File(image.path);
+
+      try {
+        // Create a unique file name for each image
+        String fileName = 'images/${DateTime.now().millisecondsSinceEpoch}_${image.name}';
+
+        // Upload the image to Firebase Storage
+        TaskSnapshot snapshot = await FirebaseStorage.instance
+            .ref(fileName)
+            .putFile(imageFile);
+
+        // Get the download URL of the uploaded image
+        String downloadUrl = await snapshot.ref.getDownloadURL();
+
+        // Store the download URL in a list
+        imageUrls.add(downloadUrl);
+      } catch (e) {
+        print('Error uploading image: $e');
+      }
+    }
+    return imageUrls;
+    // Store the list of image URLs in Firestore
+    await FirebaseFirestore.instance.collection('pg_owners').add({
+      'imageUrls': imageUrls,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+
+    print('Images uploaded successfully!');
+  }
+
+  String? uid;
+
+  @override
+  void initState() {
+    super.initState();
+    getCurrentUser();
+  }
+
+  void getCurrentUser() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        uid = user.uid;
+      });
+    }
+  }
+
+  /*@override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    fetchFieldData();
+  }
+  String? oid;
+  void fetchFieldData() async {
+    try {
+      DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+          .collection('pg_owners')
+          .doc('owner id')
+          .get();
+
+      if (documentSnapshot.exists) {
+        setState(() {
+          oid = documentSnapshot.get('owner id');
+        });
+      } else {
+        setState(() {
+          oid = 'Document does not exist';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        oid = 'Error fetching data: $e';
+      });
+    }
+  }
+*/
   Future<void> _addPG() async {
     try {
       CollectionReference pgs = FirebaseFirestore.instance.collection('pgs');
@@ -58,30 +173,64 @@ class _AddPGScreenState extends State<AddPGScreen> {
         'landmark': _landmarkController.text.trim(),
         'time': _timeController.text.trim(),
         'otherService': _otherServiceController.text.trim(),
-        'gender': _gender,
-        'sharing': _sharing,
-        'fooding': _fooding,
-        'elecbill': _elecbill,
-        'foodtype': _foodtype,
-        'furnishing': _furnishing,
-        'ac': _ac,
-        'cctv': _cctv,
-        'wifi': _wifi,
-        'parking': _parking,
-        'laundary': _laundary,
-        'profession': _profession,
+        'gender': _gender ?? '',
+        'sharing': _sharing ?? '',
+        'fooding': _fooding ?? '',
+        'elecbill': _elecbill ?? '',
+        'foodtype': _foodtype ?? '',
+        'furnishing': _furnishing ?? '',
+        'ac': _ac ?? false,
+        'cctv': _cctv ?? false,
+        'wifi': _wifi ?? false,
+        'parking': _parking ?? false,
+        'laundary': _laundary ?? false,
+        'profession': _profession ?? '',
         'location': _locationController.text.trim(),
         'summary': _summaryController.text.trim(),
         'price': int.parse(_priceController.text.trim()),
-        'images': [], // Add image URLs after uploading them to Firebase Storage
-        'ownerId': user!.uid,
+        'images': imageUrls,
+        'ownerId': uid,
       });
       Navigator.pop(context);
     } catch (e) {
       print('Failed to add PG: $e');
     }
   }
+  /*String? uid;
+  Map<String, dynamic>? pgOwnerData;
 
+  @override
+  void initState() {
+    super.initState();
+    getCurrentUser();
+  }
+
+  void getCurrentUser() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        uid = user.uid;
+      });
+      fetchPgOwnerData(user.uid);
+    }
+  }
+
+  void fetchPgOwnerData(String uid) async {
+    DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+        .collection('pg_owners')
+        .doc(uid)
+        .get();
+
+    if (documentSnapshot.exists) {
+      setState(() {
+        pgOwnerData = documentSnapshot.data() as Map<String, dynamic>?;
+      });
+      //print(pgOwnerData);
+    } else {
+      print('Document does not exist');
+    }
+  }
+*/
   @override
   Widget build(BuildContext context) {
     final User? user = FirebaseAuth.instance.currentUser;
@@ -93,7 +242,7 @@ class _AddPGScreenState extends State<AddPGScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              Uploadimage(context, "Upload File", _pickImage),
+              Uploadimage(context, "Upload File", uploadMultipleImages),
               SizedBox(height: 20,),
               DataTextField('PG Name', Icons.home_outlined, false, _nameController),
               SizedBox(height: 10,),

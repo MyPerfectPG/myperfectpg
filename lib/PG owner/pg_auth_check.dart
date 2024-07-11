@@ -13,8 +13,10 @@ class PGAuthCheck extends StatefulWidget {
 }
 
 class _PGAuthCheckState extends State<PGAuthCheck> {
+  bool _isLoggedIn = false;
+
   @override
-  void initState(){
+  void initState() {
     super.initState();
     whereToGo();
   }
@@ -24,18 +26,20 @@ class _PGAuthCheckState extends State<PGAuthCheck> {
     return Scaffold();
   }
 
-  void whereToGo()async{
-    var pref= await SharedPreferences.getInstance();
-    var isLoggedIn=pref.getBool(PGAuthCheck.KEYLOGIN);
-    if(isLoggedIn!=null){
-      if(isLoggedIn){
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>HomeScreen(),));
-      }else{
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>OwnerLoginScreen(),));
+  void whereToGo() async {
+    var pref = await SharedPreferences.getInstance();
+    var isLoggedIn = pref.getBool(PGAuthCheck.KEYLOGIN);
+    if (isLoggedIn != null) {
+      if (isLoggedIn) {
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) => HomeScreen(),));
+      } else {
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => OwnerLoginScreen(),));
       }
-    }else{
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>OwnerLoginScreen(),));
+    } else {
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => OwnerLoginScreen(),));
     }
   }
-
 }

@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:myperfectpg/PG%20owner/pg_auth_check.dart';
+import 'package:myperfectpg/PG%20owner/pg_login.dart';
+import 'package:myperfectpg/admin/admin_login.dart';
 
 import 'admin/admin_auth_check.dart';
 
@@ -32,10 +34,11 @@ class MyAppState extends State<MyApp>  {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.white38),
         useMaterial3: true,
       ),
+      debugShowCheckedModeBanner: false,
       home:  AnimatedSplashScreen(
         splash: 'assets/images/Artboard_2_copy_4-removebg-preview.png',
         splashIconSize: 450,
-        nextScreen: PGAuthCheck(),
+        nextScreen: LoginScreen(),
         backgroundColor: Color(0xff0094FF),
         duration: 1000,
         // splashTransition: SplashTransition.rotationTransition,

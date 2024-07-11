@@ -1,15 +1,21 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'edit_pg_screen.dart';
+import 'package:myperfectpg/PG%20owner/add_pg_screen.dart';
 
-class ManagePGScreen extends StatefulWidget {
+import '../PG owner/edit_pg_screen.dart';
+import 'admin_add_pg.dart';
+
+class AddPGFlat extends StatefulWidget {
+  final String pgId;
+
+  AddPGFlat({required this.pgId});
 
   @override
-  State<ManagePGScreen> createState() => _ManagePGScreenState();
+  State<AddPGFlat> createState() => _AddPGFlatState();
 }
 
-class _ManagePGScreenState extends State<ManagePGScreen> {
+class _AddPGFlatState extends State<AddPGFlat> {
   Future<void> _deletePG(String id) async {
     await FirebaseFirestore.instance.collection('pgs').doc(id).delete();
   }
@@ -47,12 +53,12 @@ class _ManagePGScreenState extends State<ManagePGScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('Manage PGs',style: const TextStyle(
           color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30),),
-      backgroundColor: Color(0xff0094FF),),
+        backgroundColor: Color(0xff0094FF),),
       backgroundColor: Color(0xffF7F7F7),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('pgs')
-            .where('ownerId', isEqualTo: uid)
+            .where('ownerId', isEqualTo: widget.pgId)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -106,7 +112,15 @@ class _ManagePGScreenState extends State<ManagePGScreen> {
             }).toList(),
           );
         },
-    ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: (){
+          Navigator.
+          push(context, MaterialPageRoute(builder: (context)=>AddPGScreenAdmin(pgId: widget.pgId)));
+        },
+        tooltip: 'Increment',
+        child: const Icon(Icons.add),
+      ),
     );
   }
 }
