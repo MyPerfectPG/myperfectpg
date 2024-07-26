@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import '../components/pg_card.dart'; // Ensure the PGCard is correctly implemented and imported
 import 'Pg.dart';
-import '../components/pg_card.dart'; // Import the PGCard
 
 class CategoryPGListScreen extends StatefulWidget {
-  final Map<String, dynamic> filters; // Updated to accept various filters
+  final String category; // Updated to accept category for better filtering
 
-  const CategoryPGListScreen({required this.filters, Key? key}) : super(key: key);
+  const CategoryPGListScreen({required this.category, Key? key}) : super(key: key);
 
   @override
   _CategoryPGListScreenState createState() => _CategoryPGListScreenState();
@@ -27,14 +26,30 @@ class _CategoryPGListScreenState extends State<CategoryPGListScreen> {
     try {
       Query query = FirebaseFirestore.instance.collection('pgs');
 
-      // Apply filters based on the provided filters map
-      widget.filters.forEach((key, value) {
-        if (value is String) {
-          query = query.where(key, isEqualTo: value);
-        } else if (value is bool) {
-          query = query.where(key, isEqualTo: value);
-        }
-      });
+      // Apply category-based filtering
+      switch (widget.category) {
+        case 'Boys':
+          query = query.where('gender', whereIn: ['Boys', 'Both']);
+          break;
+        case 'Girls':
+          query = query.where('gender', whereIn: ['Girls', 'Both']);
+          break;
+        case 'AC':
+          query = query.where('ac', isEqualTo: 'Available');
+          break;
+        case 'Non AC':
+          query = query.where('ac', isEqualTo: 'Not Available');
+          break;
+        case 'Single':
+          query = query.where('sharing', isEqualTo: 'Single');
+          break;
+        case 'Double':
+          query = query.where('sharing', isEqualTo: 'Double');
+          break;
+        default:
+        // If no category matches, return all PGs
+          break;
+      }
 
       QuerySnapshot snapshot = await query.get();
       List<DocumentSnapshot> docs = snapshot.docs;
@@ -43,12 +58,14 @@ class _CategoryPGListScreenState extends State<CategoryPGListScreen> {
       for (var doc in docs) {
         Map<String, dynamic> pgData = doc.data() as Map<String, dynamic>;
         List<String> images = List<String>.from(pgData['images']);
+
+        // Check if images list is not empty
         if (images.isNotEmpty) {
           pgs.add({
             'id': doc.id,
             'name': pgData['name'],
             'summary': pgData['summary'],
-            'image': images[0], // Use the first image or select randomly
+            'image': images.first, // Safely access the first image
           });
         }
       }
@@ -69,20 +86,33 @@ class _CategoryPGListScreenState extends State<CategoryPGListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('PG List'),
+        title: Text('${widget.category} PGs'),
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
+          : pgList.isEmpty
+          ? Center(child: Text('No PGs available for this category.'))
           : ListView.builder(
         itemCount: pgList.length,
         itemBuilder: (context, index) {
           final pg = pgList[index];
-          return HotelCard(
-            name: pg['name'],
-            summary: pg['summary'],
-            imageUrls: [pg['image']],
-            onEdit: () {},
-            onDelete: () {},
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Pg(pgId: pg['id']),
+                ),
+              );
+            },
+            child: HotelCard(
+              name: pg['name'],
+              summary: pg['summary'],
+              imageUrls: [pg['image']],
+              // Assuming PgCard has the following parameters
+              onEdit: () {},
+              onDelete: () {},
+            ),
           );
         },
       ),

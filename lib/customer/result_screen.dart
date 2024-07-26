@@ -17,23 +17,56 @@ class SearchResultsScreen extends StatelessWidget {
           if (!snapshot.hasData) {
             return Center(child: CircularProgressIndicator());
           }
+
+          // Filter documents based on the query
           List<DocumentSnapshot> docs = snapshot.data!.docs.where((doc) {
             return doc['name'].toLowerCase().contains(query.toLowerCase()) ||
                 doc['location'].toLowerCase().contains(query.toLowerCase());
           }).toList();
+
+          // Display "No results found" if the list is empty
+          if (docs.isEmpty) {
+            return Center(
+              child: Text(
+                'No results found',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            );
+          }
+
+          // Display results in a ListView
           return ListView.builder(
             itemCount: docs.length,
             itemBuilder: (context, index) {
               DocumentSnapshot doc = docs[index];
+              // Safeguard against empty 'images' list
+              List<dynamic> images = doc['images'];
+              String imageUrl = images.isNotEmpty ? images[0] : ''; // Default to empty string if no image
+
               return ListTile(
-                title: Text(doc['name']),
-                subtitle: Text(doc['location']),
-                leading: Image.network(doc['images'][0], fit: BoxFit.cover, width: 50, height: 50),
+                contentPadding: EdgeInsets.all(16),
+                leading: SizedBox(
+                  width: 100, // Adjust the width of the image
+                  height: 100, // Adjust the height of the image
+                  child: imageUrl.isNotEmpty
+                      ? Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                  )
+                      : Icon(Icons.image, size: 50), // Placeholder icon if image URL is empty
+                ),
+                title: Text(
+                  doc['name'],
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold), // Increased font size
+                ),
+                subtitle: Text(
+                  doc['location'],
+                  style: TextStyle(fontSize: 16), // Slightly larger font size
+                ),
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context)=>Pg(pgId: doc.id,
-                      )),
+                    MaterialPageRoute(builder: (context) => Pg(pgId: doc.id)),
                   );
                 },
               );

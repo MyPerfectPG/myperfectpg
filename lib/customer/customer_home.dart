@@ -98,6 +98,52 @@ class _CustomerHomeState extends State<CustomerHome> {
     }
   }
 
+  Future<List<Map<String, dynamic>>> _fetchPGsByCategory(String category) async {
+    QuerySnapshot snapshot;
+    if (category == 'Boys') {
+      snapshot = await FirebaseFirestore.instance
+          .collection('pgs')
+          .where('gender', whereIn: ['Boys', 'Both'])
+          .get();
+    } else if (category == 'Girls') {
+      snapshot = await FirebaseFirestore.instance
+          .collection('pgs')
+          .where('gender', whereIn: ['Girls', 'Both'])
+          .get();
+    } else if (category == 'AC') {
+      snapshot = await FirebaseFirestore.instance
+          .collection('pgs')
+          .where('ac', isEqualTo: 'Available')
+          .get();
+    } else if (category == 'Non AC') {
+      snapshot = await FirebaseFirestore.instance
+          .collection('pgs')
+          .where('ac', isEqualTo: 'Not Available')
+          .get();
+    } else if (category == 'Single') {
+      snapshot = await FirebaseFirestore.instance
+          .collection('pgs')
+          .where('sharing', isEqualTo: 'Single')
+          .get();
+    } else if (category == 'Double') {
+      snapshot = await FirebaseFirestore.instance
+          .collection('pgs')
+          .where('sharing', isEqualTo: 'Double')
+          .get();
+    } else {
+      snapshot = await FirebaseFirestore.instance.collection('pgs').get();
+    }
+
+    return snapshot.docs
+        .map((doc) => {
+      'id': doc.id,
+      'name': doc['name'],
+      'summary': doc['summary'],
+      'image': (doc['images'] as List<dynamic>).first,
+    })
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -248,7 +294,6 @@ class _CustomerHomeState extends State<CustomerHome> {
                 controller: _searchController,
                 decoration: InputDecoration(
                   hintText: 'Search for PG',
-                  prefixIcon: Icon(Icons.search),
                   hintStyle: TextStyle(color: Colors.grey),
                   border: InputBorder.none,
                 ),
@@ -314,23 +359,11 @@ class _CustomerHomeState extends State<CustomerHome> {
   Widget _categoryCard(String title, String imagePath) {
     return Expanded(
       child: GestureDetector(
-        onTap: () {
+        onTap: () async {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => CategoryPGListScreen(
-                filters: {
-                  'gender': _gender ?? '',
-                  'sharing': _sharing ?? '',
-                  'fooding': _fooding ?? '',
-                  'foodtype': _foodtype ?? '',
-                  'ac': _ac == 'Available',
-                  'cctv': _cctv == 'Available',
-                  'wifi': _wifi == 'Available',
-                  'parking': _parking == 'Available',
-                  'laundary': _laundary == 'Available',
-                  'profession': _profession ?? '',
-                },
+              builder: (context) => CategoryPGListScreen(category: title,
               ),
             ),
           );
