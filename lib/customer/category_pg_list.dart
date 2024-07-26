@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'Pg.dart';
+import '../components/pg_card.dart'; // Import the PGCard
 
 class CategoryPGListScreen extends StatefulWidget {
   final Map<String, dynamic> filters; // Updated to accept various filters
@@ -68,40 +69,20 @@ class _CategoryPGListScreenState extends State<CategoryPGListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('PGs - Filtered'),
+        title: Text('PG List'),
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
-          : pgList.isEmpty
-          ? Center(child: Text('No PGs available for these filters'))
           : ListView.builder(
         itemCount: pgList.length,
         itemBuilder: (context, index) {
-          var pg = pgList[index];
-          return Card(
-            margin: EdgeInsets.all(10),
-            child: ListTile(
-              contentPadding: EdgeInsets.all(10),
-              leading: Image.network(
-                pg['image'],
-                width: 100,
-                fit: BoxFit.cover,
-              ),
-              title: Text(pg['name']),
-              subtitle: Text(pg['summary']),
-              trailing: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => Pg(pgId: pg['id'],
-                      ),
-                    ),
-                  );
-                },
-                child: Text('Book Now'),
-              ),
-            ),
+          final pg = pgList[index];
+          return HotelCard(
+            name: pg['name'],
+            summary: pg['summary'],
+            imageUrls: [pg['image']],
+            onEdit: () {},
+            onDelete: () {},
           );
         },
       ),

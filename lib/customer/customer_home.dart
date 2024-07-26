@@ -18,6 +18,7 @@ class _CustomerHomeState extends State<CustomerHome> {
   final PageController _pageController = PageController();
   List<Map<String, dynamic>> pgList = [];
   bool isLoading = true;
+  int _currentPage = 0;
 
   String? _gender;
   String? _sharing;
@@ -34,6 +35,14 @@ class _CustomerHomeState extends State<CustomerHome> {
   void initState() {
     super.initState();
     _fetchRandomPGs();
+    _pageController.addListener(() {
+      int nextPage = _pageController.page?.round() ?? 0;
+      if (_currentPage != nextPage) {
+        setState(() {
+          _currentPage = nextPage;
+        });
+      }
+    });
     // Initialize variables with default values if needed
     _gender = '';
     _sharing = '';
@@ -47,11 +56,11 @@ class _CustomerHomeState extends State<CustomerHome> {
     _profession = '';
   }
 
-  /*@override
-  void initState() {
-    super.initState();
-    _fetchRandomPGs();
-  }*/
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   Future<void> _fetchRandomPGs() async {
     try {
@@ -149,8 +158,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => Pg(pgId: pg['id']
-                                            ),
+                                          builder: (context) => Pg(pgId: pg['id']),
                                         ),
                                       );
                                     },
@@ -172,6 +180,24 @@ class _CustomerHomeState extends State<CustomerHome> {
                           ],
                         );
                       },
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 16,
+                    right: 16,
+                    child: Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '${_currentPage + 1}/${pgList.length}',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                      ),
                     ),
                   ),
                   Positioned(
