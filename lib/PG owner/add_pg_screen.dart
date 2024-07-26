@@ -235,7 +235,9 @@ class _AddPGScreenState extends State<AddPGScreen> {
   Widget build(BuildContext context) {
     final User? user = FirebaseAuth.instance.currentUser;
     return Scaffold(
-      appBar: AppBar(title: Text('Add PG')),
+      appBar: AppBar(title: Text('Add PG',style: const TextStyle(
+          color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30),),
+        backgroundColor: Color(0xff0094FF),),
       backgroundColor: Color(0xffF7F7F7),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

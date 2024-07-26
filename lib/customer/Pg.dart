@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
 
 class Pg extends StatefulWidget {
   final String pgId;
@@ -17,6 +15,9 @@ class _PgState extends State<Pg> {
   int selectedSectionIndex = 0;
   Map<String, dynamic>? pgData;
   double overallRating = 0.0;
+  int reviewCount = 0;
+  final TextEditingController _reviewController = TextEditingController();
+  double _selectedRating = 3.0; // Use dynamic rating
 
   @override
   void initState() {
@@ -25,22 +26,65 @@ class _PgState extends State<Pg> {
   }
 
   Future<void> _fetchPGData() async {
-    DocumentSnapshot doc = await FirebaseFirestore.instance.collection('pgs').doc(widget.pgId).get();
-    if (doc.exists) {
-      setState(() {
-        pgData = doc.data() as Map<String, dynamic>?;
-        overallRating = _calculateOverallRating(pgData?['reviews'] ?? []);
-      });
+    try {
+      DocumentSnapshot doc = await FirebaseFirestore.instance.collection('pgs').doc(widget.pgId).get();
+      if (doc.exists) {
+        setState(() {
+          pgData = doc.data() as Map<String, dynamic>?;
+        });
+        print('PG Data fetched: $pgData'); // Debug print
+        _calculateOverallRating(); // Calculate rating after fetching data
+      } else {
+        print('No PG document found for ID: ${widget.pgId}'); // Debug print
+      }
+    } catch (e) {
+      print('Error fetching PG data: $e');
     }
   }
 
-  double _calculateOverallRating(List<dynamic> reviews) {
-    if (reviews.isEmpty) return 0.0;
-    double totalRating = 0.0;
-    for (var review in reviews) {
-      totalRating += review['rating'];
+  Future<void> _calculateOverallRating() async {
+    try {
+      QuerySnapshot reviewSnapshot = await FirebaseFirestore.instance.collection('pgs').doc(widget.pgId).collection('reviews').get();
+      print('Reviews fetched: ${reviewSnapshot.docs.length}'); // Debug print
+      if (reviewSnapshot.docs.isNotEmpty) {
+        double totalRating = 0.0;
+        int count = reviewSnapshot.docs.length;
+        for (var doc in reviewSnapshot.docs) {
+          final reviewData = doc.data() as Map<String, dynamic>;
+          totalRating += reviewData['rating'] ?? 0.0;
+        }
+        setState(() {
+          overallRating = count > 0 ? totalRating / count : 0.0;
+          reviewCount = count;
+        });
+        print('Overall Rating calculated: $overallRating, Review Count: $reviewCount'); // Debug print
+      } else {
+        setState(() {
+          overallRating = 0.0;
+          reviewCount = 0;
+        });
+        print('No reviews found'); // Debug print
+      }
+    } catch (e) {
+      print('Error calculating overall rating: $e');
     }
-    return totalRating / reviews.length;
+  }
+
+  Future<void> _submitReview(double rating, String reviewText) async {
+    final review = {
+      'rating': rating,
+      'review': reviewText,
+      'timestamp': FieldValue.serverTimestamp(),
+    };
+
+    try {
+      await FirebaseFirestore.instance.collection('pgs').doc(widget.pgId).collection('reviews').add(review);
+      print('Review submitted: $review'); // Debug print
+      await _fetchPGData(); // Refresh data after submitting
+      _reviewController.clear(); // Clear the text field after submission
+    } catch (e) {
+      print('Error submitting review: $e');
+    }
   }
 
   @override
@@ -131,49 +175,57 @@ class _PgState extends State<Pg> {
                       ],
                     ),
                     SizedBox(height: 20),
-                    Text('Location', style: TextStyle(color: Colors.black, fontSize: 20)),
-                    SizedBox(height: 10),
-                    /*FlutterMap(
-                      options: MapOptions(
-                        center: LatLng(pgData!['location']['latitude'], pgData!['location']['longitude']),
-                        zoom: 15.0,
-                      ),
-                      layers: [
-                        TileLayerOptions(
-                          urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                          subdomains: ['a', 'b', 'c'],
-                        ),
-                        MarkerLayerOptions(
-                          markers: [
-                            Marker(
-                              width: 80.0,
-                              height: 80.0,
-                              point: LatLng(pgData!['location']['latitude'], pgData!['location']['longitude']),
-                              builder: (ctx) => Container(
-                                child: Icon(Icons.location_pin, color: Colors.red, size: 40),
-                              ),
-                            ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Location', style: TextStyle(color: Colors.black, fontSize: 20)),
+                        Row(
+                          children: [
+                            Icon(Icons.location_on, color: Colors.grey, size: 20), // Location pin icon
+                            SizedBox(width: 5),
+                            Text(pgData!['location'] ?? 'Location not available', style: TextStyle(color: Colors.grey, fontSize: 18)),
                           ],
                         ),
+                        /*Text(pgData!['location'] ?? 'Location not available', style: TextStyle(color: Colors.grey, fontSize: 18)),*/
                       ],
-                    ),*/
+                    ),
+                    /*Text('Location', style: TextStyle(color: Colors.black, fontSize: 20)),*/
+                    SizedBox(height: 10),
+
+                    /* FlutterMap code omitted for simplicity */
                   ],
                 ),
               ),
             // Gallery Section
+            // Gallery Section
             if (selectedSectionIndex == 1)
               Padding(
                 padding: const EdgeInsets.all(10.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: pgData!['images'].map<Widget>((image) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Image.network(image),
+                child: GridView.builder(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2, // Number of columns
+                    crossAxisSpacing: 8.0, // Horizontal spacing between images
+                    mainAxisSpacing: 8.0, // Vertical spacing between images
+                    childAspectRatio: 1.0, // Aspect ratio of each item (1.0 makes it square)
+                  ),
+                  itemCount: pgData!['images'].length,
+                  shrinkWrap: true, // Allows the GridView to take up only the necessary space
+                  physics: NeverScrollableScrollPhysics(), // Prevents scrolling in this GridView
+                  itemBuilder: (context, index) {
+                    final imageUrl = pgData!['images'][index];
+                    return Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8.0),
+                        image: DecorationImage(
+                          image: NetworkImage(imageUrl),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
                     );
-                  }).toList(),
+                  },
                 ),
               ),
+
             // Review Section
             if (selectedSectionIndex == 2)
               Padding(
@@ -181,8 +233,38 @@ class _PgState extends State<Pg> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text('Overall Rating: ${overallRating.toStringAsFixed(1)}⭐ (${reviewCount} reviews)', style: TextStyle(fontSize: 18)),
+                    SizedBox(height: 10),
+                    Text('Reviews:', style: TextStyle(fontSize: 18)),
+                    SizedBox(height: 10),
+                    StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance.collection('pgs').doc(widget.pgId).collection('reviews').orderBy('timestamp', descending: true).snapshots(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Center(child: CircularProgressIndicator());
+                        }
+                        if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        }
+                        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                          return Text('No reviews yet.');
+                        }
+                        final reviews = snapshot.data!.docs;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: reviews.map<Widget>((doc) {
+                            final reviewData = doc.data() as Map<String, dynamic>;
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Text('${reviewData['review']} - ${reviewData['rating']}⭐'),
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
+                    SizedBox(height: 10),
                     RatingBar.builder(
-                      initialRating: 3,
+                      initialRating: _selectedRating,
                       minRating: 1,
                       direction: Axis.horizontal,
                       allowHalfRating: true,
@@ -193,23 +275,14 @@ class _PgState extends State<Pg> {
                         color: Colors.amber,
                       ),
                       onRatingUpdate: (rating) {
-                        print(rating);
+                        setState(() {
+                          _selectedRating = rating; // Update selected rating
+                        });
                       },
-                    ),
-                    SizedBox(height: 20),
-                    Text('Reviews:', style: TextStyle(fontSize: 18)),
-                    SizedBox(height: 10),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: (pgData!['reviews'] ?? []).map<Widget>((review) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Text('${review['review']} - ${review['rating']}⭐'),
-                        );
-                      }).toList(),
                     ),
                     SizedBox(height: 10),
                     TextField(
+                      controller: _reviewController,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(),
                         labelText: 'Leave a review',
@@ -217,9 +290,28 @@ class _PgState extends State<Pg> {
                     ),
                     ElevatedButton(
                       onPressed: () {
-                        // Add functionality to submit review
+                        final reviewText = _reviewController.text;
+                        final rating = _selectedRating; // Use dynamic rating
+                        if (reviewText.isNotEmpty) {
+                          _submitReview(rating, reviewText);
+                        }
                       },
                       child: Text('Submit Review'),
+                      style: ButtonStyle(
+                          foregroundColor: MaterialStateProperty.resolveWith((states) {
+                            if (states.contains(MaterialState.pressed)) {
+                              return Colors.white;
+                            }
+                            return Color(0xff0094FF);
+                          }),
+                          backgroundColor: MaterialStateProperty.resolveWith((states) {
+                            if (states.contains(MaterialState.pressed)) {
+                              return Color(0xff0094FF);
+                            }
+                            return Colors.white;
+                          }),
+                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                              RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),side:  BorderSide(color: Color(0xff0094FF)),))),
                     ),
                   ],
                 ),
@@ -269,14 +361,15 @@ class _PgState extends State<Pg> {
         });
       },
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.25, // Adjust width as needed
-        height: 30, // Adjust height as needed
+        width: MediaQuery.of(context).size.width * 0.25,
+        padding: EdgeInsets.symmetric(vertical: 10),
         child: Center(
           child: Text(
             title,
             style: TextStyle(
-              fontSize: 20,
-              color: selectedSectionIndex == index ? Colors.blue : Colors.grey,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: selectedSectionIndex == index ? Colors.blue : Colors.black,
             ),
           ),
         ),
@@ -294,11 +387,10 @@ class IconTextWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 24, color: Colors.blue),
-        SizedBox(width: 4),
-        Text(text, style: TextStyle(fontSize: 16, color: Colors.black)),
+        Icon(icon, color: Colors.blue),
+        SizedBox(width: 5),
+        Text(text, style: TextStyle(fontSize: 16)),
       ],
     );
   }

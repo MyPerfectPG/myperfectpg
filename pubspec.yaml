@@ -69,6 +69,7 @@ dependencies:
   pinput: ^5.0.0
   firebase_app_check: ^0.3.0+3
   carousel_slider: ^4.2.1
+  lottie: ^3.1.2
 
 
 dev_dependencies:
@@ -79,7 +80,9 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/images/logo-removebg-preview.png"
+  image_path: "assets/images/Artboard_10-removebg.png"
+  icon_size: 200
+  duration: 1000
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

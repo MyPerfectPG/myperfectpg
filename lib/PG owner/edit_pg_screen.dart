@@ -1,4 +1,3 @@
-
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
@@ -177,7 +176,9 @@ class _EditPGScreenState extends State<EditPGScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Edit PG')),
+      appBar: AppBar(title: Text('Edit PG',style: const TextStyle(
+          color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30),),
+        backgroundColor: Color(0xff0094FF),),
       backgroundColor: Color(0xffF7F7F7),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -249,18 +250,18 @@ class _EditPGScreenState extends State<EditPGScreen> {
                     child: Text(value,),
                   );
                 }).toList(),decoration: InputDecoration(
-                hintText: "Sharing",
-                filled: true,
-                fillColor: Color(0xffF7F7F7),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(30),),
-              ),),
+                  hintText: "Sharing",
+                  filled: true,
+                  fillColor: Color(0xffF7F7F7),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(30),),
+                ),),
               SizedBox(height: 10,),
               DropdownButtonFormField(value: _fooding,
                 onChanged: (String? newValue) {
-                setState(() {
-                  _fooding = newValue!;
-                });
-              },
+                  setState(() {
+                    _fooding = newValue!;
+                  });
+                },
                 items: <String>['Included', 'Not Included']
                     .map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
@@ -276,10 +277,10 @@ class _EditPGScreenState extends State<EditPGScreen> {
               SizedBox(height: 10,),
               DropdownButtonFormField(value: _foodtype,
                 onChanged: (String? newValue) {
-                setState(() {
-                  _foodtype = newValue!;
-                });
-              },
+                  setState(() {
+                    _foodtype = newValue!;
+                  });
+                },
                 items: <String>['Veg', 'Non-Veg','No','Both']
                     .map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
@@ -295,10 +296,10 @@ class _EditPGScreenState extends State<EditPGScreen> {
               SizedBox(height: 10,),
               DropdownButtonFormField(value: _ac,
                 onChanged: (String? newValue) {
-                setState(() {
-                  _ac = newValue!;
-                });
-              },
+                  setState(() {
+                    _ac = newValue!;
+                  });
+                },
                 items: <String>['Available', 'Not Available']
                     .map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
@@ -314,10 +315,10 @@ class _EditPGScreenState extends State<EditPGScreen> {
               SizedBox(height: 10,),
               DropdownButtonFormField(value: _furnishing,
                 onChanged: (String? newValue) {
-                setState(() {
-                  _furnishing = newValue!;
-                });
-              },
+                  setState(() {
+                    _furnishing = newValue!;
+                  });
+                },
                 items: <String>['Unfurnished', 'Semi-Furnished','Furnished']
                     .map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
@@ -333,10 +334,10 @@ class _EditPGScreenState extends State<EditPGScreen> {
               SizedBox(height: 10,),
               DropdownButtonFormField(value: _cctv,
                 onChanged: (String? newValue) {
-                setState(() {
-                  _cctv = newValue!;
-                });
-              },
+                  setState(() {
+                    _cctv = newValue!;
+                  });
+                },
                 items: <String>['Available', 'Not Available']
                     .map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
@@ -352,10 +353,10 @@ class _EditPGScreenState extends State<EditPGScreen> {
               SizedBox(height: 10,),
               DropdownButtonFormField(value: _wifi,
                 onChanged: (String? newValue) {
-                setState(() {
-                  _wifi = newValue!;
-                });
-              },
+                  setState(() {
+                    _wifi = newValue!;
+                  });
+                },
                 items: <String>['Available', 'Not Available']
                     .map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
@@ -371,10 +372,10 @@ class _EditPGScreenState extends State<EditPGScreen> {
               SizedBox(height: 10,),
               DropdownButtonFormField(value: _parking,
                 onChanged: (String? newValue) {
-                setState(() {
-                  _parking = newValue!;
-                });
-              },
+                  setState(() {
+                    _parking = newValue!;
+                  });
+                },
                 items: <String>['Available','Not Available']
                     .map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
@@ -390,10 +391,10 @@ class _EditPGScreenState extends State<EditPGScreen> {
               SizedBox(height: 10,),
               DropdownButtonFormField(value: _laundary,
                 onChanged: (String? newValue) {
-                setState(() {
-                  _laundary = newValue!;
-                });
-              },
+                  setState(() {
+                    _laundary = newValue!;
+                  });
+                },
                 items: <String>['Available', 'Not Available']
                     .map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
@@ -409,10 +410,10 @@ class _EditPGScreenState extends State<EditPGScreen> {
               SizedBox(height: 10,),
               DropdownButtonFormField(value: _profession,
                 onChanged: (String? newValue) {
-                setState(() {
-                  _profession = newValue!;
-                });
-              },
+                  setState(() {
+                    _profession = newValue!;
+                  });
+                },
                 items: <String>['Student', 'Working Profession','Both']
                     .map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
@@ -429,6 +430,21 @@ class _EditPGScreenState extends State<EditPGScreen> {
               ElevatedButton(
                 onPressed: _updatePG,
                 child: Text('Update PG'),
+                style: ButtonStyle(
+                    foregroundColor: MaterialStateProperty.resolveWith((states) {
+                      if (states.contains(MaterialState.pressed)) {
+                        return Colors.white;
+                      }
+                      return Color(0xff0094FF);
+                    }),
+                    backgroundColor: MaterialStateProperty.resolveWith((states) {
+                      if (states.contains(MaterialState.pressed)) {
+                        return Color(0xff0094FF);
+                      }
+                      return Colors.white;
+                    }),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                        RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),side:  BorderSide(color: Color(0xff0094FF)),))),
               ),
             ],
           ),

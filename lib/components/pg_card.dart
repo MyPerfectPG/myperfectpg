@@ -38,43 +38,38 @@ class HotelCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Column(
-                      children: [
-                        Text(
-                          name,
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
-                        SizedBox(height: 8),
-                        Text(
-                          summary,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[600],
-                          ),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        summary,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[600],
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
-                Row(
-                  children: [
-                    SizedBox(width: 150,),
-                    IconButton(
-                      icon: Icon(Icons.edit, color: Colors.blue),
-                      onPressed: onEdit,
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
-                      onPressed: onDelete,
-                    ),
-                  ],
+                IconButton(
+                  icon: Icon(Icons.edit_rounded, color: Colors.blue),
+                  iconSize: 35,
+                  onPressed: onEdit,
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete_outline_rounded, color: Colors.red),
+                  iconSize: 35,
+                  onPressed: onDelete,
                 ),
               ],
             ),

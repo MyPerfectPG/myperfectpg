@@ -322,10 +322,12 @@ class _CustomerHomeState extends State<CustomerHome> {
     List<Map<String, String>> categories = [
       {'title': 'Boys', 'imagePath': 'lib/assets/boys.png'},
       {'title': 'Girls', 'imagePath': 'lib/assets/girls.png'},
+      {'title': 'Both', 'imagePath': 'lib/assets/girls.png'},
       {'title': 'AC', 'imagePath': 'lib/assets/ac.png'},
       {'title': 'Non AC', 'imagePath': 'lib/assets/non-ac.png'},
       {'title': 'Single', 'imagePath': 'lib/assets/categories.png'},
       {'title': 'Double', 'imagePath': 'lib/assets/categories.png'},
+      {'title': 'Triple', 'imagePath': 'lib/assets/categories.png'},
     ];
 
     return Column(

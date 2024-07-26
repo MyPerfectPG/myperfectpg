@@ -75,10 +75,14 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
     FirebaseAuth auth = FirebaseAuth.instance;
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-    // Retrieve the email associated with the phone number from Firestore
-    DocumentSnapshot doc = await firestore.collection('users').doc(phoneNumber).get();
+    // Query Firestore to find the user document with the matching phone number
+    QuerySnapshot query = await firestore.collection('users')
+        .where('phone', isEqualTo: phoneNumber)
+        .limit(1)
+        .get();
 
-    if (doc.exists) {
+    if (query.docs.isNotEmpty) {
+      DocumentSnapshot doc = query.docs.first;
       String email = doc['email'];
 
       // Sign in with the retrieved email and password
