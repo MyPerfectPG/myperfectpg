@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../components/resuable.dart';
-import 'home.dart';
 
 
 class ResetPassword extends StatefulWidget {
@@ -22,14 +21,14 @@ class _ResetPasswordState extends State<ResetPassword> {
         elevation: 0,
         title: const Text(
           "Reset Password",
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold,color: Colors.white),
         ),
       ),
       body: Container(
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height,
           decoration: BoxDecoration(
-              color: Color(0xffE75480)),
+              color: Color(0xff0094FF)),
           child: SingleChildScrollView(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(20, 120, 20, 0),
@@ -38,7 +37,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                     const SizedBox(
                       height: 20,
                     ),
-                    reusableTextField("Enter Email Id", Icons.person_outline, false,
+                    reusableTextField("Enter phone number", Icons.person_outline, false,
                         _emailTextController),
                     const SizedBox(
                       height: 20,

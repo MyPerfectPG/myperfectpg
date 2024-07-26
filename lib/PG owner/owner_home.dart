@@ -187,8 +187,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             icon: Icon(Icons.logout),
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
-              var pref= await SharedPreferences.getInstance();
-              pref.setBool(AuthCheck.KEYLOGIN, false);
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => OwnerLoginScreen()),

@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../components/pg_card.dart';
 import 'edit_pg_screen.dart';
 
 class ManagePGScreen extends StatefulWidget {
@@ -66,7 +67,21 @@ class _ManagePGScreenState extends State<ManagePGScreen> {
           return ListView(
             scrollDirection: Axis.vertical,
             children: snapshot.data!.docs.map((doc) {
-              return Container(
+              return HotelCard(
+                name: doc['name'],
+                summary: doc['summary'],
+                imageUrls: List<String>.from(doc['images']),
+                onEdit: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditPGScreen(pgId: doc.id),
+                    ),
+                  );
+                },
+                onDelete: () => _deletePG(doc.id),
+              );
+              /*return Container(
                 width: MediaQuery.of(context).size.width/0.2,
                 height: 100,
                 margin: const EdgeInsets.only(top: 15,left: 15,right: 15),
@@ -102,7 +117,7 @@ class _ManagePGScreenState extends State<ManagePGScreen> {
                     ],
                   ),
                 ),
-              );
+              );*/
             }).toList(),
           );
         },

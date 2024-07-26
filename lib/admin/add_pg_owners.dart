@@ -52,7 +52,8 @@ class AddPgOwnerScreen extends StatelessWidget {
                   'uid': uid,
                   'name': nameController.text,
                   'phone': phoneController.text,
-                  'email': emailController.text, // Optionally store the email as well
+                  'email': emailController.text,
+                  'password':pwdController.text,// Optionally store the email as well
                   // Add other necessary details here
                 };
 
@@ -65,7 +66,6 @@ class AddPgOwnerScreen extends StatelessWidget {
                 print('Error registering PG Owner: $e');
               }
             }
-
               /*(){
               _firestore.collection('pg_owners').add({
                 'name': nameController.text,

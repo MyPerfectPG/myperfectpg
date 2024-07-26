@@ -195,7 +195,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> with SingleTickerProv
               _buildTabContent(
                 context,
                 "assets/images/add_pg1.jpg",
-                ViewBookingRequestsScreen(),
+                ViewBookingsScreen(),
               ),
               _buildTabContent(
                 context,

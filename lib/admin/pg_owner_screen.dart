@@ -12,7 +12,6 @@ class PgOwnersScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text('PG Owners',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 30,color: Colors.white),),
         backgroundColor: Color(0xff0094FF),
-
       ),
       backgroundColor: Color(0xffF7F7F7),
       body: StreamBuilder(

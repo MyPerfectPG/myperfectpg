@@ -1,5 +1,10 @@
+
+import 'dart:io';
+
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:myperfectpg/components/resuable.dart';
 
 class EditPGScreen extends StatefulWidget {
@@ -32,6 +37,8 @@ class _EditPGScreenState extends State<EditPGScreen> {
   String _parking = 'Not Available';
   String _laundary = 'Not Available';
   String _profession = 'Student';
+  List<String> _imageUrls = [];
+  List<File> _newImages = [];
 
   @override
   void initState() {
@@ -61,33 +68,111 @@ class _EditPGScreenState extends State<EditPGScreen> {
       _parking = doc['parking'];
       _laundary = doc['laundary'];
       _profession = doc['profession'];
+      _imageUrls = List<String>.from(doc['images']);
     });
   }
 
-  Future<void> _updatePG() async {
-    await FirebaseFirestore.instance.collection('pgs').doc(widget.pgId).update({
-      'name': _nameController.text.trim(),
-      'landmark': _landmarkController.text.trim(),
-      'time': _timeController.text.trim(),
-      'otherService': _otherServiceController.text.trim(),
-      'location': _locationController.text.trim(),
-      'summary': _summaryController.text.trim(),
-      'price': int.parse(_priceController.text.trim()),
-      'gender': _gender,
-      'sharing': _sharing,
-      'fooding': _fooding,
-      'elecbill': _elecbill,
-      'foodtype': _foodtype,
-      'furnishing': _furnishing,
-      'ac': _ac,
-      'cctv': _cctv,
-      'wifi': _wifi,
-      'parking': _parking,
-      'laundary': _laundary,
-      'profession': _profession,
+  Future<List<String>> uploadMultipleImages() async {
+    final picker = ImagePicker();
+    final List<XFile>? images = await picker.pickMultiImage();
+
+    if (images == null || images.isEmpty) {
+      print('No images selected.');
+      // return;
+    }
+
+
+
+    for (XFile image in images!) {
+      File imageFile = File(image.path);
+
+      try {
+        // Create a unique file name for each image
+        String fileName = 'images/${DateTime.now().millisecondsSinceEpoch}_${image.name}';
+
+        // Upload the image to Firebase Storage
+        TaskSnapshot snapshot = await FirebaseStorage.instance
+            .ref(fileName)
+            .putFile(imageFile);
+
+        // Get the download URL of the uploaded image
+        String downloadUrl = await snapshot.ref.getDownloadURL();
+
+        // Store the download URL in a list
+        _imageUrls.add(downloadUrl);
+      } catch (e) {
+        print('Error uploading image: $e');
+      }
+    }
+    return _imageUrls;
+    // Store the list of image URLs in Firestore
+    await FirebaseFirestore.instance.collection('pg_owners').add({
+      'imageUrls': _imageUrls,
+      'timestamp': FieldValue.serverTimestamp(),
     });
-    Navigator.pop(context);
+
+    print('Images uploaded successfully!');
   }
+
+  Future<List<String>> _uploadImages(List<File> images) async {
+    List<String> downloadUrls = [];
+    for (File image in images) {
+      String fileName = image.path.split('/').last;
+      Reference storageRef = FirebaseStorage.instance.ref().child('pg_images/$fileName');
+      UploadTask uploadTask = storageRef.putFile(image as File);
+      TaskSnapshot snapshot = await uploadTask;
+      String downloadUrl = await snapshot.ref.getDownloadURL();
+      downloadUrls.add(downloadUrl);
+    }
+    return downloadUrls;
+  }
+
+  Future<void> _updatePG() async {
+    try {
+      List<String> newImageUrls = await _uploadImages(_newImages);
+      List<String> finalImageUrls = _imageUrls + newImageUrls;
+      await FirebaseFirestore.instance.collection('pgs')
+          .doc(widget.pgId)
+          .update({
+        'images': finalImageUrls,
+        'name': _nameController.text.trim(),
+        'landmark': _landmarkController.text.trim(),
+        'time': _timeController.text.trim(),
+        'otherService': _otherServiceController.text.trim(),
+        'location': _locationController.text.trim(),
+        'summary': _summaryController.text.trim(),
+        'price': int.parse(_priceController.text.trim()),
+        'gender': _gender,
+        'sharing': _sharing,
+        'fooding': _fooding,
+        'elecbill': _elecbill,
+        'foodtype': _foodtype,
+        'furnishing': _furnishing,
+        'ac': _ac,
+        'cctv': _cctv,
+        'wifi': _wifi,
+        'parking': _parking,
+        'laundary': _laundary,
+        'profession': _profession,
+      });
+      Navigator.pop(context);
+    }catch (e) {
+      print('Failed to update PG: $e');
+    }
+  }
+
+  Future<void> _deleteImage(String imageUrl) async {
+    setState(() {
+      _imageUrls.remove(imageUrl);
+    });
+    try {
+      Reference storageRef = FirebaseStorage.instance.refFromURL(imageUrl);
+      await storageRef.delete();
+    } catch (e) {
+      print('Failed to delete image: $e');
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -99,6 +184,26 @@ class _EditPGScreenState extends State<EditPGScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
+              SizedBox(height: 20,),
+              Uploadimage(context, "Pick New Images", uploadMultipleImages),
+              SizedBox(height: 10),
+              Text('Current Images:', style: TextStyle(fontSize: 16)),
+              Wrap(
+                children: _imageUrls.map((imageUrl) {
+                  return Stack(
+                    children: [
+                      Image.network(imageUrl, width: 100, height: 100, fit: BoxFit.cover),
+                      Positioned(
+                        right: 0,
+                        child: IconButton(
+                          icon: Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _deleteImage(imageUrl),
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
               SizedBox(height: 20,),
               DataTextField('PG Name', Icons.home_outlined, false, _nameController),
               SizedBox(height: 10,),

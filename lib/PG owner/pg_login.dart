@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:myperfectpg/PG%20owner/owner_home.dart';
+import 'package:myperfectpg/PG%20owner/pg_signup.dart';
 import 'package:myperfectpg/Page/reset_password.dart';
 import 'package:myperfectpg/Page/signup.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -77,7 +78,7 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
                 const SizedBox(
                   height: 30,
                 ),
-                reusableTextField("Enter Username", Icons.person_outline, false, _emailTextController),
+                reusableTextField("Enter Email ID", Icons.person_outline, false, _emailTextController),
                 const SizedBox(
                   height: 30,
                 ),
@@ -86,43 +87,8 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
                   height: 20,
                 ),
                 forgetPassword(context),
-                firebaseUIButton(context, "Sign In", _login/*(){
-                  try{
-                    FirebaseFirestore.instance.collection("pg_owners").get().then((snapshot) {
-                      snapshot.docs.forEach((result) async {
-                        if (result.data()['name'] != _emailTextController.text.trim()) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              backgroundColor: Colors.black,
-                              content: Text(
-                                "Your id is not correct",
-                                style: TextStyle(fontSize: 18.0),
-                              )));
-                        } else if (result.data()['password'] !=
-                            _passwordTextController.text.trim()) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              backgroundColor: Colors.black,
-                              content: Text(
-                                "Your password is not correct",
-                                style: TextStyle(fontSize: 18.0),
-                              )));
-                        } else {
-                          Route route = MaterialPageRoute(builder: (context) => HomeScreen());
-                          var pref= await SharedPreferences.getInstance();
-                          pref.setString('name',_emailTextController.toString() );
-                          pref.setBool(AuthCheck.KEYLOGIN, true);
-                          Navigator.pushReplacement(context, route);
-                          // final SharedPreferences prefs = await SharedPreferences.getInstance();
-                          // prefs.setString('id', _emailTextController.text);
-                          // prefs.setString('id', _emailTextController.text);
-                        }
-                      });
-                    });
-                  }catch (error) {
-                    print("Error ${error.toString()}"); // Return the error code if user creation fails
-                  }
-                }*/
-                ),
-                //signUpOption()
+                firebaseUIButton(context, "Sign In", _login),
+                signUpOption()
               ],
             ),),
         ),
@@ -138,7 +104,7 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
         GestureDetector(
           onTap: () {
             Navigator.push(context,
-                MaterialPageRoute(builder: (context) => SignUpScreen()));
+                MaterialPageRoute(builder: (context) => PGSignUpScreen()));
           },
           child: const Text(
             " Sign Up",
