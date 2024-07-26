@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../components/pg_card.dart'; // Ensure the PGCard is correctly implemented and imported
+import '../components/pg_card.dart'; // Ensure PGCard is correctly implemented and imported
+import '../components/pg_customer_card.dart';
 import 'Pg.dart';
 
 class CategoryPGListScreen extends StatefulWidget {
@@ -64,8 +65,9 @@ class _CategoryPGListScreenState extends State<CategoryPGListScreen> {
           pgs.add({
             'id': doc.id,
             'name': pgData['name'],
-            'summary': pgData['summary'],
+            'location': pgData['location'], // Fetch the location
             'image': images.first, // Safely access the first image
+            'price': (pgData['price'] as num).toDouble(), // Cast price to double
           });
         }
       }
@@ -86,7 +88,9 @@ class _CategoryPGListScreenState extends State<CategoryPGListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.category} PGs'),
+        title: Text('${widget.category} PGs',style: const TextStyle(
+            color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30),),
+        backgroundColor: Color(0xff0094FF),
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
@@ -105,11 +109,11 @@ class _CategoryPGListScreenState extends State<CategoryPGListScreen> {
                 ),
               );
             },
-            child: HotelCard(
+            child: PGCard(
               name: pg['name'],
-              summary: pg['summary'],
+              location: pg['location'], // Pass the location to PGCard
               imageUrls: [pg['image']],
-              // Assuming PgCard has the following parameters
+              price: pg['price'], // Pass the price to PGCard
               onEdit: () {},
               onDelete: () {},
             ),

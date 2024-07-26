@@ -10,7 +10,8 @@ class SearchResultsScreen extends StatelessWidget {
     String query = args['query'] ?? '';
 
     return Scaffold(
-      appBar: AppBar(title: Text('Search Results')),
+      appBar: AppBar(title: Text('Search Results',style: const TextStyle(
+          color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30),),backgroundColor: Color(0xff0094FF),),
       body: StreamBuilder(
         stream: FirebaseFirestore.instance.collection('pgs').snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
