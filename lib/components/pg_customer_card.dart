@@ -1,28 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Import intl package
 
 class PGCard extends StatelessWidget {
   final String name;
-  final String location;
   final List<String> imageUrls;
-  final double price;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   PGCard({
     required this.name,
-    required this.location,
     required this.imageUrls,
-    required this.price,
     required this.onEdit,
     required this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Create a NumberFormat instance to format the price
-    final formatter = NumberFormat('#,##0');
-
     return Card(
       margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
       shape: RoundedRectangleBorder(
@@ -66,7 +58,6 @@ class PGCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                /*Positioned(
                   top: 10,
                   right: 10,
                   child: Container(
@@ -93,7 +84,6 @@ class PGCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                ),*/
               ],
             ),
           ),
@@ -124,7 +114,6 @@ class PGCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  "₹ ${formatter.format(price)} \nper month", // Format the price dynamically
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
