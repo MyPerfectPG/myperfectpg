@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -68,6 +69,74 @@ class _PgState extends State<Pg> {
     } catch (e) {
       print('Error calculating overall rating: $e');
     }
+  }
+
+
+  Future<void> _bookNow() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      // Handle case when no user is logged in
+      print('No user is currently logged in');
+      return;
+    }
+
+    final userId = user.uid;
+    final userDoc = FirebaseFirestore.instance.collection('users').doc(userId);
+    final userSnapshot = await userDoc.get();
+    final userData = userSnapshot.data() as Map<String, dynamic>?;
+
+    if (userData == null) {
+      print('User data not found');
+      return;
+    }
+
+    final ownerId = pgData!['ownerId']; // Assuming PG document contains 'ownerId'
+    final ownerDoc = FirebaseFirestore.instance.collection('pg_owners').doc(ownerId);
+    final ownerSnapshot = await ownerDoc.get();
+    final ownerData = ownerSnapshot.data() as Map<String, dynamic>?;
+
+    if (ownerData == null) {
+      print('Owner data not found');
+      return;
+    }
+
+    final booking = {
+      'customerName': userData['name'],
+      'customerPhone': userData['phone'],
+      'pgName': pgData!['name'],
+      'ownerName': ownerData['name'],
+      'ownerPhone': ownerData['phone'],
+      'timestamp': FieldValue.serverTimestamp(),
+    };
+
+    try {
+      await FirebaseFirestore.instance.collection('bookings').add(booking);
+      print('Booking submitted: $booking'); // Debug print
+      _showBookingConfirmation();
+    } catch (e) {
+      print('Error submitting booking: $e');
+    }
+  }
+
+  void _showBookingConfirmation() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Booking Confirmed'),
+          content: Text('Appointment booked. You will be contacted soon.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop(); // Go back to the previous screen
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _submitReview(double rating, String reviewText) async {
@@ -332,9 +401,7 @@ class _PgState extends State<Pg> {
               ),
             ),
             ElevatedButton(
-              onPressed: () {
-                // Add functionality for the button here
-              },
+              onPressed: _bookNow,
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.blue, backgroundColor: Colors.white,
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 30),

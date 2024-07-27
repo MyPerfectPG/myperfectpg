@@ -92,13 +92,21 @@ class PGCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  "\₹$price \nper month", // Display the price dynamically
+                  "₹${price.toStringAsFixed(0)} \nper month", // Display the price without decimal points
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Color(0xff0094FF),
                   ),
                 ),
+                /*Text(
+                  "\₹$price \nper month", // Display the price dynamically
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xff0094FF),
+                  ),
+                ),*/
               ],
             ),
           ),

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:myperfectpg/customer/Pg.dart';
 import 'package:myperfectpg/customer/result_screen.dart';
@@ -31,9 +32,33 @@ class _CustomerHomeState extends State<CustomerHome> {
   String? _laundary;
   String? _profession;
 
+  String? uid;
+
+
+  void getCurrentUser() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        uid = user.uid;
+      });
+      if (uid == null) {
+        print('User is not authenticated.');
+        // Handle the case where the user is not authenticated
+        // For example, navigate to login screen or show a dialog
+      } else {
+        print('User is authenticated: ${uid}');
+      }
+    }
+    else {
+      print('User is not authenticated.');
+    }
+  }
+
+
   @override
   void initState() {
     super.initState();
+    getCurrentUser();
     _fetchRandomPGs();
     _pageController.addListener(() {
       int nextPage = _pageController.page?.round() ?? 0;

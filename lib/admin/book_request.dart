@@ -26,8 +26,8 @@ class ViewBookingsScreen extends StatelessWidget {
                     children: [
                       Text('Customer: ${data['customerName']}'),
                       Text('Customer Phone: ${data['customerPhone']}'),
-                      Text('PG Owner: ${data['pgOwnerName']}'),
-                      Text('PG Owner Phone: ${data['pgOwnerPhone']}'),
+                      Text('PG Owner: ${data['ownerName']}'), // Updated field name
+                      Text('PG Owner Phone: ${data['ownerPhone']}'), // Updated field name
                     ],
                   ),
                   trailing: IconButton(
