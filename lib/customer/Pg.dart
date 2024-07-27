@@ -225,6 +225,7 @@ class _PgState extends State<Pg> {
               ),
             ),
             // About Section
+            // About Section
             if (selectedSectionIndex == 0)
               Padding(
                 padding: const EdgeInsets.all(10.0),
@@ -232,40 +233,116 @@ class _PgState extends State<Pg> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Spacer(),
-                        IconTextWidget(icon: Icons.bed, text: '3 Beds'),
-                        Spacer(),
-                        IconTextWidget(icon: Icons.bathtub, text: '1 Bath'),
-                        Spacer(),
-                        IconTextWidget(icon: Icons.ac_unit, text: '1 AC'),
-                        Spacer(),
+                        IconTextWidget(
+                          icon: Icons.bed,
+                          text: pgData!['sharing'] == 'Single'
+                              ? '1 Bed'
+                              : pgData!['sharing'] == 'Double'
+                              ? '2 Beds'
+                              : '3 Beds',
+                        ),
+                        SizedBox(width: 10), // Reduced space between keywords
+                        IconTextWidget(
+                          icon: Icons.chair,
+                          text: pgData!['furnishing'] ?? 'Unfurnished',
+                        ),
                       ],
                     ),
-                    SizedBox(height: 20),
+                    SizedBox(height: 20), // Space between rows
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Location', style: TextStyle(color: Colors.black, fontSize: 20)),
-                        Row(
-                          children: [
-                            Icon(Icons.location_on, color: Colors.grey, size: 20), // Location pin icon
-                            SizedBox(width: 5),
-                            Text(pgData!['location'] ?? 'Location not available', style: TextStyle(color: Colors.grey, fontSize: 18)),
-                          ],
+                        IconTextWidget(
+                          icon: Icons.wc,
+                          text: pgData!['gender'] ?? 'Both Genders',
                         ),
-                        /*Text(pgData!['location'] ?? 'Location not available', style: TextStyle(color: Colors.grey, fontSize: 18)),*/
+                        SizedBox(width: 10), // Reduced space between keywords
+                        IconTextWidget(
+                          icon: Icons.videocam,
+                          text: pgData!['cctv'] ?? 'CCTV Not Available',
+                        ),
                       ],
                     ),
-                    /*Text('Location', style: TextStyle(color: Colors.black, fontSize: 20)),*/
-                    SizedBox(height: 10),
-
-                    /* FlutterMap code omitted for simplicity */
+                    SizedBox(height: 20), // Space between rows
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconTextWidget(
+                          icon: Icons.electrical_services,
+                          text: pgData!['elecbill'] ?? 'Electric Bill Not Included',
+                        ),
+                        SizedBox(width: 10), // Reduced space between keywords
+                        IconTextWidget(
+                          icon: Icons.fastfood,
+                          text: pgData!['fooding'] ?? 'Food Not Included',
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20), // Space between rows
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconTextWidget(
+                          icon: Icons.dining,
+                          text: pgData!['foodtype'] ?? 'Food Type Not Available',
+                        ),
+                        SizedBox(width: 10), // Reduced space between keywords
+                        IconTextWidget(
+                          icon: Icons.ac_unit,
+                          text: pgData!['ac'] ?? 'AC Not Available',
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20), // Space between rows
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconTextWidget(
+                          icon: Icons.local_laundry_service,
+                          text: pgData!['laundary'] ?? 'Laundry Not Available',
+                        ),
+                        SizedBox(width: 10), // Reduced space between keywords
+                        IconTextWidget(
+                          icon: Icons.local_parking,
+                          text: pgData!['parking'] ?? 'Parking Not Available',
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20), // Space between rows
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconTextWidget(
+                          icon: Icons.work,
+                          text: pgData!['profession'] ?? 'Profession Not Specified',
+                        ),
+                        SizedBox(width: 10), // Reduced space between keywords
+                        IconTextWidget(
+                          icon: Icons.wifi,
+                          text: pgData!['wifi'] ?? 'WiFi Not Available',
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Location', style: TextStyle(color: Colors.black, fontSize: 20)),
+                                Row(
+                                  children: [
+                                    Icon(Icons.location_on, color: Colors.grey, size: 20), // Location pin icon
+                                    SizedBox(width: 5),
+                                    Text(pgData!['location'] ?? 'Location not available', style: TextStyle(color: Colors.grey, fontSize: 18)),
+                                  ],
+                                ),
+                                /*Text(pgData!['location'] ?? 'Location not available', style: TextStyle(color: Colors.grey, fontSize: 18)),*/
+                              ],
+                            ),
                   ],
                 ),
               ),
-            // Gallery Section
             // Gallery Section
             if (selectedSectionIndex == 1)
               Padding(
