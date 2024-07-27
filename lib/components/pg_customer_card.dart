@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 
 class PGCard extends StatelessWidget {
   final String name;
+  final String location; // Add location parameter
   final List<String> imageUrls;
+  final double price; // Add price parameter
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   PGCard({
     required this.name,
+    required this.location, // Add location to the constructor
     required this.imageUrls,
+    required this.price, // Add price to the constructor
     required this.onEdit,
     required this.onDelete,
   });
@@ -58,32 +62,6 @@ class PGCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                  top: 10,
-                  right: 10,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                    decoration: BoxDecoration(
-                      color: Color(0xff0094FF),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        Text(
-                          '4.5', // Assuming a static rating for demo
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(width: 4),
-                        Icon(
-                          Icons.star,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                      ],
-                    ),
-                  ),
               ],
             ),
           ),
@@ -114,6 +92,7 @@ class PGCard extends StatelessWidget {
                   ),
                 ),
                 Text(
+                  "\₹$price \nper month", // Display the price dynamically
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
