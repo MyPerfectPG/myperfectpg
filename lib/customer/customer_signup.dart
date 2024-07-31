@@ -80,7 +80,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                   ),
                 );
               } catch (e) {
-                print('Error registering PG Owner: $e');
+                print('Error registering Customer: $e');
               }
             }
               /*(){

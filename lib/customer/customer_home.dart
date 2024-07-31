@@ -1,11 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:myperfectpg/customer/Pg.dart';
+import 'package:myperfectpg/customer/customer_login.dart';
 import 'package:myperfectpg/customer/result_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:math';
 
+import 'booking_screen.dart';
 import 'category_pg_list.dart';
+import 'edit_profile.dart';
 
 class CustomerHome extends StatefulWidget {
   const CustomerHome({super.key});
@@ -17,6 +20,7 @@ class CustomerHome extends StatefulWidget {
 class _CustomerHomeState extends State<CustomerHome> {
   final TextEditingController _searchController = TextEditingController();
   final PageController _pageController = PageController();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<Map<String, dynamic>> pgList = [];
   bool isLoading = true;
   int _currentPage = 0;
@@ -31,9 +35,10 @@ class _CustomerHomeState extends State<CustomerHome> {
   String? _parking;
   String? _laundary;
   String? _profession;
-
+  String? userName;
+  String? emailId;
   String? uid;
-
+  String? userImageUrl;
 
   void getCurrentUser() async {
     User? user = FirebaseAuth.instance.currentUser;
@@ -47,13 +52,18 @@ class _CustomerHomeState extends State<CustomerHome> {
         // For example, navigate to login screen or show a dialog
       } else {
         print('User is authenticated: ${uid}');
+        // Fetch user image from Firestore
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+        setState(() {
+          userName = userDoc['name'] ?? 'User Name';
+          emailId = userDoc['email'] ?? ' ';
+          userImageUrl = userDoc['imageUrl'] ?? null;
+        });
       }
-    }
-    else {
+    } else {
       print('User is not authenticated.');
     }
   }
-
 
   @override
   void initState() {
@@ -172,6 +182,55 @@ class _CustomerHomeState extends State<CustomerHome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            UserAccountsDrawerHeader(
+              accountName: Text(userName ?? 'User Name'), // Display actual user name
+              accountEmail: Text(emailId ?? 'user@example.com'), // Replace with actual user email if needed
+              currentAccountPicture: CircleAvatar(
+                backgroundImage: userImageUrl != null
+                    ? NetworkImage(userImageUrl!)
+                    : AssetImage('lib/assets/default_avatar.png') as ImageProvider,
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.person),
+              title: Text('Edit Profile'),
+              onTap: () {
+                // Navigate to Edit Profile screen
+                Navigator.push(context, MaterialPageRoute(builder: (context)=>EditProfileScreen())); // Close the drawer
+                // Add navigation code here
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.book),
+              title: Text('My Bookings'),
+              onTap: () {
+                // Navigate to My Bookings screen
+                Navigator.push(context, MaterialPageRoute(builder: (context)=>MyBookingsScreen()));  // Close the drawer
+                // Add navigation code here
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.logout),
+              title: Text('Sign Out'),
+              onTap: () async {
+                bool signOutConfirmed = await _showSignOutConfirmationDialog(context);
+                if (signOutConfirmed) {
+                  await FirebaseAuth.instance.signOut();
+                  Navigator.popUntil(context, (route) => route.isFirst);
+                  // Navigate to the login screen or any initial screen
+                } else {
+                  Navigator.pop(context); // Close the drawer
+                }
+              },
+            ),
+          ],
+        ),
+      ),
       body: SingleChildScrollView(
         child: Container(
           color: Colors.white,
@@ -204,8 +263,10 @@ class _CustomerHomeState extends State<CustomerHome> {
                               color: Colors.black.withOpacity(0.5),
                               padding: EdgeInsets.all(16),
                               child: Column(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment:
+                                MainAxisAlignment.end,
+                                crossAxisAlignment:
+                                CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     pg['name'],
@@ -229,13 +290,16 @@ class _CustomerHomeState extends State<CustomerHome> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => Pg(pgId: pg['id']),
+                                          builder: (context) => Pg(
+                                              pgId: pg['id']),
                                         ),
                                       );
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.blue,
-                                      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 34),
+                                      padding: EdgeInsets.symmetric(
+                                          vertical: 10,
+                                          horizontal: 34),
                                     ),
                                     child: Text(
                                       'Book Now',
@@ -272,10 +336,30 @@ class _CustomerHomeState extends State<CustomerHome> {
                     ),
                   ),
                   Positioned(
-                    top: 16,
+                    top: 50, // Adjusted to position lower than the profile button
                     left: 16,
                     right: 16,
                     child: _buildSearchBar(), // Search bar positioned on top of the image
+                  ),
+                  Positioned(
+                    top: 16,
+                    left: 16,
+                    child: GestureDetector(
+                      onTap: () {
+                        _scaffoldKey.currentState?.openDrawer();
+                      },
+                      child: CircleAvatar(
+                        radius: 20,
+                        backgroundImage: userImageUrl != null
+                            ? NetworkImage(userImageUrl!)
+                            : AssetImage('lib/assets/default_avatar.png')
+                        as ImageProvider,
+                        backgroundColor: Colors.black.withOpacity(0.5),
+                        child: userImageUrl == null
+                            ? Icon(Icons.menu, color: Colors.white)
+                            : null,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -383,6 +467,34 @@ class _CustomerHomeState extends State<CustomerHome> {
     );
   }
 
+  Future<bool> _showSignOutConfirmationDialog(BuildContext context) async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Confirm Sign Out'),
+        content: Text('Are you sure you want to sign out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              FirebaseAuth.instance.signOut().then((value) {
+                print('Signed Out');
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => CustomerLoginScreen()),
+                );
+              });
+            },
+            child: Text('Sign Out'),
+          ),
+        ],
+      ),
+    ) ?? false;
+  }
+
   Widget _categoryCard(String title, String imagePath) {
     return Expanded(
       child: GestureDetector(
@@ -390,8 +502,7 @@ class _CustomerHomeState extends State<CustomerHome> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => CategoryPGListScreen(category: title,
-              ),
+              builder: (context) => CategoryPGListScreen(category: title),
             ),
           );
         },

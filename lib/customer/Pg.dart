@@ -101,9 +101,12 @@ class _PgState extends State<Pg> {
     }
 
     final booking = {
+      'uid': userId,
       'customerName': userData['name'],
       'customerPhone': userData['phone'],
       'pgName': pgData!['name'],
+      'location': pgData!['location'],
+      'price': pgData!['price'],
       'ownerName': ownerData['name'],
       'ownerPhone': ownerData['phone'],
       'timestamp': FieldValue.serverTimestamp(),
@@ -129,7 +132,6 @@ class _PgState extends State<Pg> {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(); // Close the dialog
-                Navigator.of(context).pop(); // Go back to the previous screen
               },
               child: Text('OK'),
             ),
@@ -326,20 +328,20 @@ class _PgState extends State<Pg> {
                       ],
                     ),
                     SizedBox(height: 20),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('Location', style: TextStyle(color: Colors.black, fontSize: 20)),
-                                Row(
-                                  children: [
-                                    Icon(Icons.location_on, color: Colors.grey, size: 20), // Location pin icon
-                                    SizedBox(width: 5),
-                                    Text(pgData!['location'] ?? 'Location not available', style: TextStyle(color: Colors.grey, fontSize: 18)),
-                                  ],
-                                ),
-                                /*Text(pgData!['location'] ?? 'Location not available', style: TextStyle(color: Colors.grey, fontSize: 18)),*/
-                              ],
-                            ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Location', style: TextStyle(color: Colors.black, fontSize: 20)),
+                        Row(
+                          children: [
+                            Icon(Icons.location_on, color: Colors.grey, size: 20), // Location pin icon
+                            SizedBox(width: 5),
+                            Text(pgData!['location'] ?? 'Location not available', style: TextStyle(color: Colors.grey, fontSize: 18)),
+                          ],
+                        ),
+                        /*Text(pgData!['location'] ?? 'Location not available', style: TextStyle(color: Colors.grey, fontSize: 18)),*/
+                      ],
+                    ),
                   ],
                 ),
               ),

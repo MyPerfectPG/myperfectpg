@@ -37,7 +37,7 @@ class MyAppState extends State<MyApp>  {
       home:  AnimatedSplashScreen(
         splash: 'assets/images/Artboard_2_copy_4-removebg-preview.png',
         splashIconSize: 450,
-        nextScreen: PGAuthCheck(),
+        nextScreen: CustomerAuth(),
         backgroundColor: Color(0xff0094FF),
         duration: 1000,
         // splashTransition: SplashTransition.rotationTransition,
