@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_database/firebase_database.dart';
+
+DatabaseReference databaseRef = FirebaseDatabase.instance.ref('pgs');
 
 class PGCard extends StatelessWidget {
   final String name;
@@ -35,7 +38,8 @@ class PGCard extends StatelessWidget {
                   itemCount: imageUrls.length,
                   itemBuilder: (context, index) {
                     return ClipRRect(
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(20)),
                       child: Image.network(
                         imageUrls[index],
                         fit: BoxFit.cover,
@@ -50,7 +54,7 @@ class PGCard extends StatelessWidget {
                   child: Row(
                     children: List.generate(
                       imageUrls.length,
-                          (index) => Container(
+                      (index) => Container(
                         margin: EdgeInsets.symmetric(horizontal: 2),
                         width: 8,
                         height: 8,
