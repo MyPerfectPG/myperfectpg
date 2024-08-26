@@ -41,7 +41,7 @@ class SearchResultsScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               DocumentSnapshot doc = docs[index];
               // Safeguard against empty 'images' list
-              List<dynamic> images = doc['images'];
+              List<dynamic> images = doc['thumbnail'];
               String imageUrl = images.isNotEmpty ? images[0] : ''; // Default to empty string if no image
 
               return ListTile(

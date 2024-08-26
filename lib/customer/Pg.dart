@@ -19,7 +19,7 @@ class _PgState extends State<Pg> {
   int reviewCount = 0;
   final TextEditingController _reviewController = TextEditingController();
   double _selectedRating = 3.0; // Use dynamic rating
-
+  List<String>? pgImages ;
   @override
   void initState() {
     super.initState();
@@ -29,6 +29,7 @@ class _PgState extends State<Pg> {
   Future<void> _fetchPGData() async {
     try {
       DocumentSnapshot doc = await FirebaseFirestore.instance.collection('pgs').doc(widget.pgId).get();
+      pgImages = await fetchAllPGImages();
       if (doc.exists) {
         setState(() {
           pgData = doc.data() as Map<String, dynamic>?;
@@ -42,6 +43,39 @@ class _PgState extends State<Pg> {
       print('Error fetching PG data: $e');
     }
   }
+
+  Future<List<String>> fetchAllPGImages() async {
+    List<String> allImages = [];
+
+    // Fetch all documents from the 'pg_details' collection
+    QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('pg_details').get();
+
+    for (var doc in snapshot.docs) {
+      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+      // Add the thumbnail image if it exists
+      if (data['thumbnail'] != null && data['thumbnail'].isNotEmpty) {
+        allImages.add(data['thumbnail']);
+      }
+
+      // Check if 'sharing_details' exists and is a list
+      if (data['sharing_details'] != null && data['sharing_details'] is List) {
+        for (var sharingDetail in data['sharing_details']) {
+          if (sharingDetail['images'] != null && sharingDetail['images'] is List) {
+            allImages.addAll(List<String>.from(sharingDetail['images']));
+          }
+        }
+      }
+
+      // Add other_pics images if they exist
+      if (data['other_pics'] != null && data['other_pics'] is List) {
+        allImages.addAll(List<String>.from(data['other_pics']));
+      }
+    }
+
+    return allImages;
+  }
+
 
   Future<void> _calculateOverallRating() async {
     try {
@@ -106,7 +140,7 @@ class _PgState extends State<Pg> {
       'customerPhone': userData['phone'],
       'pgName': pgData!['name'],
       'location': pgData!['location'],
-      'price': pgData!['price'],
+      /*'price': pgData!['price'],*/
       'ownerName': ownerData['name'],
       'ownerPhone': ownerData['phone'],
       'timestamp': FieldValue.serverTimestamp(),
@@ -176,8 +210,8 @@ class _PgState extends State<Pg> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            pgData!['images'].isNotEmpty
-                ? Image.network(pgData!['images'][0], height: 500, width: MediaQuery.of(context).size.width, fit: BoxFit.cover)
+            pgData!['thumbnail'].isNotEmpty
+                ? Image.network(pgData!['thumbnail'][0], height: 500, width: MediaQuery.of(context).size.width, fit: BoxFit.cover)
                 : SizedBox(height: 500),
             Padding(
               padding: EdgeInsets.all(8.0),
@@ -227,19 +261,123 @@ class _PgState extends State<Pg> {
               ),
             ),
             // About Section
-            // About Section
             if (selectedSectionIndex == 0)
               Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Sharing Details",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 8,),
+                    for (var detail in (pgData!['sharing_details'] as List<dynamic>))
+                      if (detail['selected'] == true)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 10.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // First Row for Title, Price, and Vacant Beds
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  // Title
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      detail['title'] ?? 'No Title',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Colors.blue
+                                      ),
+                                    ),
+                                  ),
+                                  // Vacant Beds
+                                  Row(
+                                    children: [
+                                      Icon(Icons.bed, color: Colors.blue, size: 20), // Vacant beds icon
+                                      SizedBox(width: 5),
+                                      Text('x ${detail['vacantBeds'] ?? 'N/A'}', style: TextStyle(fontSize: 16)),
+                                    ],
+                                  ),
+                                  // Price
+                                  Row(
+                                    children: [
+                                      Icon(Icons.currency_rupee_outlined, color: Colors.blue, size: 20), // Price icon
+                                      SizedBox(width: 5),
+                                      Text('${detail['price'] ?? 'N/A'}', style: TextStyle(fontSize: 16)),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 5), // Space between rows
+                              // Second Row for Furnishing
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Icon(Icons.chair, color: Colors.blue, size: 20), // Furnishing icon
+                                  SizedBox(width: 5),
+                                  Text('${detail['furnishing'] ?? 'Not Specified'}', style: TextStyle(fontSize: 16)),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                    /*for (var detail in (pgData!['sharing_details'] as List<dynamic>))
+                      if (detail['selected'] == true)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 10.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // Title
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  detail['title'] ?? 'No Title',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: Colors.blue
+                                  ),
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  Icon(Icons.bed,color: Colors.blue ,size: 20), // Vacant beds icon
+                                  SizedBox(width: 5),
+                                  Text('x ${detail['vacantBeds'] ?? 'N/A'}', style: TextStyle(fontSize: 16)),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Icon(Icons.currency_rupee_outlined, color: Colors.blue, size: 20), // Price icon
+                                  SizedBox(width: 5),
+                                  Text('${detail['price'] ?? 'N/A'}', style: TextStyle(fontSize: 16)),
+                                ],
+                              ),
+                              // Vacant Beds
+
+                            ],
+                          ),
+                        ),*/
+
+                    /*Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         IconTextWidget(
                           icon: Icons.bed,
-                          text: pgData!['sharing'] == 'Single'
+                          text: pgData!['sharing_details'] == 'Single'
                               ? '1 Bed'
                               : pgData!['sharing'] == 'Double'
                               ? '2 Beds'
@@ -251,8 +389,8 @@ class _PgState extends State<Pg> {
                           text: pgData!['furnishing'] ?? 'Unfurnished',
                         ),
                       ],
-                    ),
-                    SizedBox(height: 20), // Space between rows
+                    ),*/
+                    SizedBox(height: 10), // Space between rows
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -267,37 +405,83 @@ class _PgState extends State<Pg> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 20), // Space between rows
+                    SizedBox(height: 10),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        IconTextWidget(
+                        if (pgData!['ac'] != null)
+                          Row(
+                            children: [
+                              Icon(Icons.ac_unit, color: Colors.blue, size: 20),
+                              SizedBox(width: 5),
+                              Text('${pgData!['ac'] ?? 'AC Not Available'}', style: TextStyle(fontSize: 16)),
+                            ],
+                          ),
+                        if (pgData!['fooding'] != null)
+                          Row(
+                            children: [
+                              Icon(Icons.fastfood, color: Colors.blue, size: 20),
+                              SizedBox(width: 5),
+                              Text('${pgData!['fooding'] ?? 'Food Not Included'}', style: TextStyle(fontSize: 16)),
+                            ],
+                          ),
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (pgData!['foodtype'] != null)
+                          Row(
+                            children: [
+                              Icon(Icons.restaurant, color: Colors.blue, size: 20),
+                              SizedBox(width: 5),
+                              Text('${pgData!['foodtype'] ?? 'Food Type Not Available'}', style: TextStyle(fontSize: 16)),
+                            ],
+                          ),
+                      ],
+                    ),
+                    SizedBox(height: 10,),
+                    if (pgData!['elecbill'] != null)
+                      Row(
+                        children: [
+                          Icon(Icons.electric_bolt, color: Colors.blue, size: 20),
+                          SizedBox(width: 5),
+                          Text('${pgData!['elecbill'] ?? 'Electric Bill Not Included'}', style: TextStyle(fontSize: 16)),
+                          if (pgData!['elecbill'] == 'Not Included')
+                            Text(' (Bill Amount: ${pgData!['billAmount'] ?? 'N/A'})', style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic)),
+                        ],
+                      ),
+                    /*Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        *//*IconTextWidget(
                           icon: Icons.electrical_services,
                           text: pgData!['elecbill'] ?? 'Electric Bill Not Included',
-                        ),
+                        ),*//*
                         SizedBox(width: 10), // Reduced space between keywords
                         IconTextWidget(
                           icon: Icons.fastfood,
                           text: pgData!['fooding'] ?? 'Food Not Included',
                         ),
                       ],
-                    ),
-                    SizedBox(height: 20), // Space between rows
+                    ),*/
+                    //SizedBox(height: 10), // Space between rows
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        IconTextWidget(
+                        /*IconTextWidget(
                           icon: Icons.dining,
                           text: pgData!['foodtype'] ?? 'Food Type Not Available',
-                        ),
-                        SizedBox(width: 10), // Reduced space between keywords
-                        IconTextWidget(
+                        ),*/
+                        //SizedBox(width: 10), // Reduced space between keywords
+                        /*IconTextWidget(
                           icon: Icons.ac_unit,
                           text: pgData!['ac'] ?? 'AC Not Available',
-                        ),
+                        ),*/
                       ],
                     ),
-                    SizedBox(height: 20), // Space between rows
+                    SizedBox(height: 10), // Space between rows
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -312,7 +496,7 @@ class _PgState extends State<Pg> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 20), // Space between rows
+                    SizedBox(height: 10), // Space between rows
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -349,6 +533,176 @@ class _PgState extends State<Pg> {
             if (selectedSectionIndex == 1)
               Padding(
                 padding: const EdgeInsets.all(10.0),
+                child: Column(
+                  children: [
+                    Builder(
+                      builder: (context) {
+                        // Filter the sharing_details list to get all selected entries
+                        final selectedDetails = pgData!['sharing_details']
+                            .where((detail) => detail['selected'] == true)
+                            .toList();
+
+                        // Print the selected details to debug
+                        print('Selected Details: $selectedDetails');
+
+                        // If there are no selected details, return an empty container
+                        if (selectedDetails.isEmpty) {
+                          return Center(child: Text('No images to display.'));
+                        }
+
+                        return ListView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(), // Prevents scrolling in this ListView
+                          itemCount: selectedDetails.length,
+                          itemBuilder: (context, index) {
+                            final detail = selectedDetails[index];
+                            final title = detail['title'];
+                            final images = detail['images'] as List;
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Title for the current group of images
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 10.0),
+                                  child: Text(
+                                    title,
+                                    style: TextStyle(
+                                      fontSize: 20.0,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                // GridView for the images
+                                GridView.builder(
+                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2, // Number of columns
+                                    crossAxisSpacing: 8.0, // Horizontal spacing between images
+                                    mainAxisSpacing: 8.0, // Vertical spacing between images
+                                    childAspectRatio: 1.0, // Aspect ratio of each item (1.0 makes it square)
+                                  ),
+                                  itemCount: images.length,
+                                  shrinkWrap: true, // Allows the GridView to take up only the necessary space
+                                  physics: NeverScrollableScrollPhysics(), // Prevents scrolling in this GridView
+                                  itemBuilder: (context, imageIndex) {
+                                    final imageUrl = images[imageIndex];
+
+                                    return Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8.0),
+                                        image: DecorationImage(
+                                          image: NetworkImage(imageUrl),
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                SizedBox(height: 20.0), // Spacing between sections
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    SizedBox(height: 10,),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Other Pictures',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                    GridView.builder(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2, // Number of columns
+                        crossAxisSpacing: 8.0, // Horizontal spacing between images
+                        mainAxisSpacing: 8.0, // Vertical spacing between images
+                        childAspectRatio: 1.0, // Aspect ratio of each item (1.0 makes it square)
+                      ),
+                      itemCount: pgData!['other_pics'].length,
+                      shrinkWrap: true, // Allows the GridView to take up only the necessary space
+                      physics: NeverScrollableScrollPhysics(), // Prevents scrolling in this GridView
+                      itemBuilder: (context, imageIndex) {
+                        final imageUrl = pgData!['other_pics'][imageIndex];
+
+                        return Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8.0),
+                            image: DecorationImage(
+                              image: NetworkImage(imageUrl),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+
+            /*if (selectedSectionIndex == 1)
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Builder(
+                builder: (context) {
+                // Filter the sharing_details list to get all selected entries
+                final selectedDetails = pgData!['sharing_details']
+                    .where((detail) => detail['selected'] == true)
+                    .toList();
+
+                // Print the selected details to debug
+                print('Selected Details: $selectedDetails');
+
+                // Extract all images from the selected details
+                final allImages = selectedDetails
+                    .expand((detail) => detail['images'] as List)
+                    .toList();
+
+                // Print the list of all images to debug
+                print('All Images: $allImages');
+
+                // If there are no images, return an empty container
+                if (allImages.isEmpty) {
+                return Center(child: Text('No images to display.'));
+                }
+
+                return GridView.builder(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2, // Number of columns
+                    crossAxisSpacing: 8.0, // Horizontal spacing between images
+                    mainAxisSpacing: 8.0, // Vertical spacing between images
+                    childAspectRatio: 1.0, // Aspect ratio of each item (1.0 makes it square)
+                  ),
+                  itemCount: allImages.length,
+                  shrinkWrap: true, // Allows the GridView to take up only the necessary space
+                  physics: NeverScrollableScrollPhysics(), // Prevents scrolling in this GridView
+                  itemBuilder: (context, index) {
+                  // Determine the current image to display based on the index
+                    final imageUrl = allImages[index];
+
+                    return Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8.0),
+                        image: DecorationImage(
+                          image: NetworkImage(imageUrl),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    );
+                  },
+                  );
+                },
+              ),
+            ),
+*/
+
+            /*Padding(
+                padding: const EdgeInsets.all(10.0),
                 child: GridView.builder(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2, // Number of columns
@@ -372,7 +726,7 @@ class _PgState extends State<Pg> {
                     );
                   },
                 ),
-              ),
+              ),*/
 
             // Review Section
             if (selectedSectionIndex == 2)
@@ -472,10 +826,11 @@ class _PgState extends State<Pg> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+
             TextButton(
               onPressed: () {},
               child: Text(
-                '₹${pgData!['price']}/month',
+                '₹${_getPriceBasedOnSharing(pgData!['sharing_details'])}/month',
                 style: TextStyle(color: Colors.white, fontSize: 20),
               ),
             ),
@@ -521,6 +876,21 @@ class _PgState extends State<Pg> {
         ),
       ),
     );
+  }
+
+
+  double? _getPriceBasedOnSharing(List<dynamic> sharingDetail) {
+    double? lowestPrice;
+    // Find the lowest price in the sharingOptions array
+    for (var option in sharingDetail) {
+      String priceStr = option['price'] ?? '';
+      double price = double.tryParse(priceStr) ?? double.infinity;
+
+      if (lowestPrice == null || price < lowestPrice) {
+        lowestPrice = price;
+      }
+    }
+    return lowestPrice;
   }
 }
 

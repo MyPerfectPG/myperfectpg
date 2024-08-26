@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../components/pg_card.dart'; // Ensure PGCard is correctly implemented and imported
 import '../components/pg_customer_card.dart';
 import 'Pg.dart';
 
 class CategoryPGListScreen extends StatefulWidget {
-  final String category; // Updated to accept category for better filtering
+  final String category;
 
   const CategoryPGListScreen({required this.category, Key? key}) : super(key: key);
 
@@ -39,20 +38,52 @@ class _CategoryPGListScreenState extends State<CategoryPGListScreen> {
           query = query.where('gender', whereIn: ['Both']);
           break;
         case 'AC':
-          query = query.where('ac', isEqualTo: 'Available');
-          break;
+          QuerySnapshot snapshot = await query.get();
+          List<DocumentSnapshot> filteredDocs = snapshot.docs.where((doc) {
+            final List<String> acList = List<String>.from(doc['ac']);
+            return acList.contains('Available');
+          }).toList();
+
+          _populatePGList(filteredDocs);
+          return;
         case 'Non AC':
-          query = query.where('ac', isEqualTo: 'Not Available');
-          break;
+          QuerySnapshot snapshot = await query.get();
+          List<DocumentSnapshot> filteredDocs = snapshot.docs.where((doc) {
+            final List<String> acList = List<String>.from(doc['ac']);
+            return acList.contains('Not Available');
+          }).toList();
+
+          _populatePGList(filteredDocs);
+          return;
         case 'Single':
-          query = query.where('sharing', isEqualTo: 'Single');
-          break;
+        // Custom filter for Single sharing with title and selected field checks
+          QuerySnapshot snapshot = await query.get();
+          List<DocumentSnapshot> filteredDocs = snapshot.docs.where((doc) {
+            final sharingDetail = doc['sharing_details'];
+            return sharingDetail.any((detail) =>
+            detail['title'] == 'Single' && detail['selected'] == true);
+          }).toList();
+          _populatePGList(filteredDocs);
+          return; // Skip the general fetch below
         case 'Double':
-          query = query.where('sharing', isEqualTo: 'Double');
-          break;
+          QuerySnapshot snapshot = await query.get();
+          List<DocumentSnapshot> filteredDocs = snapshot.docs.where((doc) {
+            final sharingDetail = doc['sharing_details'];
+            return sharingDetail.any((detail) =>
+            detail['title'] == 'Double' && detail['selected'] == true);
+          }).toList();
+          _populatePGList(filteredDocs);
+          return;
         case 'Triple':
-          query = query.where('sharing', isEqualTo: 'Triple');
-          break;
+          QuerySnapshot snapshot = await query.get();
+          List<DocumentSnapshot> filteredDocs = snapshot.docs.where((doc) {
+            final sharingDetail = doc['sharing_details'];
+            return sharingDetail.any((detail) =>
+            detail['title'] == 'Triple' && detail['selected'] == true);
+          }).toList();
+
+          _populatePGList(filteredDocs);
+          return;
         default:
         // If no category matches, return all PGs
           break;
@@ -60,28 +91,7 @@ class _CategoryPGListScreenState extends State<CategoryPGListScreen> {
 
       QuerySnapshot snapshot = await query.get();
       List<DocumentSnapshot> docs = snapshot.docs;
-      List<Map<String, dynamic>> pgs = [];
-
-      for (var doc in docs) {
-        Map<String, dynamic> pgData = doc.data() as Map<String, dynamic>;
-        List<String> images = List<String>.from(pgData['images']);
-
-        // Check if images list is not empty
-        if (images.isNotEmpty) {
-          pgs.add({
-            'id': doc.id,
-            'name': pgData['name'],
-            'location': pgData['location'], // Fetch the location
-            'image': images.first, // Safely access the first image
-            'price': (pgData['price'] as num).toDouble(), // Cast price to double
-          });
-        }
-      }
-
-      setState(() {
-        pgList = pgs;
-        isLoading = false;
-      });
+      _populatePGList(docs);
     } catch (e) {
       print("Error fetching PGs by category: $e");
       setState(() {
@@ -90,11 +100,50 @@ class _CategoryPGListScreenState extends State<CategoryPGListScreen> {
     }
   }
 
+  void _populatePGList(List<DocumentSnapshot> docs) {
+    List<Map<String, dynamic>> pgs = [];
+
+    for (var doc in docs) {
+      Map<String, dynamic> pgData = doc.data() as Map<String, dynamic>;
+      List<String> images = List<String>.from(pgData['thumbnail']);
+      double? lowestPrice;
+
+      // Extract the sharingOptions array
+      List<dynamic> sharingOptions = pgData['sharing_details'];
+
+      // Find the lowest price in the sharingOptions array
+      for (var option in sharingOptions) {
+        String priceStr = option['price'] ?? '';
+        double price = double.tryParse(priceStr) ?? double.infinity;
+
+        if (lowestPrice == null || price < lowestPrice) {
+          lowestPrice = price;
+        }
+      }
+
+      // Check if images list is not empty
+      if (images.isNotEmpty) {
+        pgs.add({
+          'id': doc.id,
+          'name': pgData['name'],
+          'location': pgData['location'], // Fetch the location
+          'image': images.first, // Safely access the first image
+          'price': lowestPrice, // Cast price to double*/
+        });
+      }
+    }
+
+    setState(() {
+      pgList = pgs;
+      isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.category} PGs',style: const TextStyle(
+        title: Text('${widget.category} PGs', style: const TextStyle(
             color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30),),
         backgroundColor: Color(0xff0094FF),
       ),

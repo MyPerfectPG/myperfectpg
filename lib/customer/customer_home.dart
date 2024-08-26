@@ -97,7 +97,65 @@ class _CustomerHomeState extends State<CustomerHome> {
     super.dispose();
   }
 
+  // Inside your existing code
+
+
   Future<void> _fetchRandomPGs() async {
+    try {
+      QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('pgs').get();
+      List<DocumentSnapshot> docs = snapshot.docs;
+
+      if (docs.isEmpty) {
+        print("No documents found in the 'pgs' collection.");
+        return;
+      }
+
+      List<Map<String, dynamic>> pgs = [];
+      Random random = Random();
+
+      // Repeat the PGs if there are fewer than 5
+      while (pgs.length < 5 && docs.isNotEmpty) {
+        for (int i = 0; i < docs.length && pgs.length < 5; i++) {
+          DocumentSnapshot doc = docs[random.nextInt(docs.length)];
+          Map<String, dynamic> pgData = doc.data() as Map<String, dynamic>;
+
+          // Debugging: Print the document data
+          print("Document data: $pgData");
+
+          List<dynamic> thumbnailList = pgData['thumbnail'] ?? [];
+          String thumbnail = thumbnailList.isNotEmpty ? thumbnailList[0] : ''; // Get the first thumbnail URL
+
+          if (thumbnail.isNotEmpty) {
+            pgs.add({
+              'id': doc.id,
+              'name': pgData['name'] ?? 'No Name',
+              'summary': pgData['summary'] ?? 'No Summary',
+              'image': thumbnail, // Use the first thumbnail field
+            });
+
+            // Remove the selected doc to avoid duplication
+            docs.remove(doc);
+          }
+        }
+      }
+
+      setState(() {
+        pgList = pgs.take(5).toList();
+        isLoading = false;
+      });
+
+      // Debugging: Print the final list of PGs
+      print("Fetched PG List: $pgList");
+
+    } catch (e) {
+      print("Error fetching PGs: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  /*Future<void> _fetchRandomPGs() async {
     try {
       QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('pgs').get();
       List<DocumentSnapshot> docs = snapshot.docs;
@@ -109,13 +167,13 @@ class _CustomerHomeState extends State<CustomerHome> {
         for (int i = 0; i < docs.length && pgs.length < 5; i++) {
           DocumentSnapshot doc = docs[random.nextInt(docs.length)];
           Map<String, dynamic> pgData = doc.data() as Map<String, dynamic>;
-          List<String> images = List<String>.from(pgData['images']);
-          if (images.isNotEmpty) {
+          String thumbnail = pgData['thumbnail'] ?? ''; // Get the thumbnail field
+          if (thumbnail.isNotEmpty) {
             pgs.add({
               'id': doc.id,
               'name': pgData['name'],
               'summary': pgData['summary'],
-              'image': images[0], // You can also select a random image from the list
+              'image': thumbnail, // Use the thumbnail field
             });
           }
         }
@@ -131,7 +189,7 @@ class _CustomerHomeState extends State<CustomerHome> {
         isLoading = false;
       });
     }
-  }
+  }*/
 
   Future<List<Map<String, dynamic>>> _fetchPGsByCategory(String category) async {
     QuerySnapshot snapshot;
