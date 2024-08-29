@@ -238,6 +238,7 @@ class _CustomerHomeState extends State<CustomerHome> {
   }
 
   @override
+
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
@@ -246,43 +247,42 @@ class _CustomerHomeState extends State<CustomerHome> {
           padding: EdgeInsets.zero,
           children: <Widget>[
             UserAccountsDrawerHeader(
-              accountName: Text(userName ?? 'User Name'), // Display actual user name
-              accountEmail: Text(emailId ?? 'user@example.com'), // Replace with actual user email if needed
+              accountName: Text(userName ?? 'User Name'),
+              accountEmail: Text(emailId ?? 'user@example.com'),
               currentAccountPicture: CircleAvatar(
                 backgroundImage: userImageUrl != null
                     ? NetworkImage(userImageUrl!)
-                    : AssetImage('lib/assets/default_avatar.png') as ImageProvider,
+                    : AssetImage('lib/assets/default_avatar.png')
+                as ImageProvider,
               ),
             ),
             ListTile(
               leading: Icon(Icons.person),
               title: Text('Edit Profile'),
               onTap: () {
-                // Navigate to Edit Profile screen
-                Navigator.push(context, MaterialPageRoute(builder: (context)=>EditProfileScreen())); // Close the drawer
-                // Add navigation code here
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => EditProfileScreen()));
               },
             ),
             ListTile(
               leading: Icon(Icons.book),
               title: Text('My Bookings'),
               onTap: () {
-                // Navigate to My Bookings screen
-                Navigator.push(context, MaterialPageRoute(builder: (context)=>MyBookingsScreen()));  // Close the drawer
-                // Add navigation code here
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => MyBookingsScreen()));
               },
             ),
             ListTile(
               leading: Icon(Icons.logout),
               title: Text('Sign Out'),
               onTap: () async {
-                bool signOutConfirmed = await _showSignOutConfirmationDialog(context);
+                bool signOutConfirmed =
+                await _showSignOutConfirmationDialog(context);
                 if (signOutConfirmed) {
                   await FirebaseAuth.instance.signOut();
                   Navigator.popUntil(context, (route) => route.isFirst);
-                  // Navigate to the login screen or any initial screen
                 } else {
-                  Navigator.pop(context); // Close the drawer
+                  Navigator.pop(context);
                 }
               },
             ),
@@ -292,15 +292,14 @@ class _CustomerHomeState extends State<CustomerHome> {
       body: SingleChildScrollView(
         child: Container(
           color: Colors.white,
-          padding: EdgeInsets.fromLTRB(0, 0, 0, 16), // Removed top padding only
+          padding: EdgeInsets.fromLTRB(0, 0, 0, 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Stack(
                 children: [
-                  // Slideshow Section
                   SizedBox(
-                    height: 400, // Adjust height as needed
+                    height: 400,
                     child: isLoading
                         ? Center(child: CircularProgressIndicator())
                         : pgList.isEmpty
@@ -348,8 +347,8 @@ class _CustomerHomeState extends State<CustomerHome> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => Pg(
-                                              pgId: pg['id']),
+                                          builder: (context) =>
+                                              Pg(pgId: pg['id']),
                                         ),
                                       );
                                     },
@@ -394,28 +393,41 @@ class _CustomerHomeState extends State<CustomerHome> {
                     ),
                   ),
                   Positioned(
-                    top: 50, // Adjusted to position lower than the profile button
-                    left: 16,
-                    right: 16,
-                    child: _buildSearchBar(), // Search bar positioned on top of the image
-                  ),
-                  Positioned(
-                    top: 16,
-                    left: 16,
-                    child: GestureDetector(
-                      onTap: () {
-                        _scaffoldKey.currentState?.openDrawer();
-                      },
-                      child: CircleAvatar(
-                        radius: 20,
-                        backgroundImage: userImageUrl != null
-                            ? NetworkImage(userImageUrl!)
-                            : AssetImage('lib/assets/default_avatar.png')
-                        as ImageProvider,
-                        backgroundColor: Colors.black.withOpacity(0.5),
-                        child: userImageUrl == null
-                            ? Icon(Icons.menu, color: Colors.white)
-                            : null,
+                    top: 5,
+                    left: 5,
+                    right: 5,
+                    child: SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                _scaffoldKey.currentState?.openDrawer();
+                              },
+                              child: CircleAvatar(
+                                radius: 22,
+                                backgroundImage: userImageUrl != null
+                                    ? NetworkImage(userImageUrl!)
+                                    : AssetImage(
+                                    'lib/assets/default_avatar.png')
+                                as ImageProvider,
+                                backgroundColor: Colors.black.withOpacity(0.5),
+                                child: userImageUrl == null
+                                    ? Icon(Icons.menu, color: Colors.white)
+                                    : null,
+                              ),
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding:
+                                const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: _buildSearchBar(),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -436,7 +448,7 @@ class _CustomerHomeState extends State<CustomerHome> {
               SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: _categorySection(), // Display categories section
+                child: _categorySection(),
               ),
             ],
           ),
@@ -444,6 +456,7 @@ class _CustomerHomeState extends State<CustomerHome> {
       ),
     );
   }
+
 
   Widget _buildSearchBar() {
     return Padding(

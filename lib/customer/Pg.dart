@@ -1,8 +1,14 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 class Pg extends StatefulWidget {
   final String pgId;
 
@@ -10,7 +16,7 @@ class Pg extends StatefulWidget {
 
   @override
   _PgState createState() => _PgState();
-}
+} //late final MapController _mapController;
 
 class _PgState extends State<Pg> {
   int selectedSectionIndex = 0;
@@ -24,6 +30,7 @@ class _PgState extends State<Pg> {
   void initState() {
     super.initState();
     _fetchPGData();
+    //_mapController = MapController();
   }
 
   Future<void> _fetchPGData() async {
@@ -76,6 +83,22 @@ class _PgState extends State<Pg> {
     return allImages;
   }
 
+  /*Future<Map<String, double>> getCoordinatesFromLocation(String locationName) async {
+    final apiKey = 'ExmGgEXRZ4oFbM5bA3Nb';
+    final url = 'https://api.maptiler.com/geocoding/$locationName.json?key=$apiKey';
+
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final coordinates = data['features'][0]['geometry']['coordinates'];
+      return {
+        'longitude': coordinates[0],
+        'latitude': coordinates[1],
+      };
+    } else {
+      throw Exception('Failed to get coordinates');
+    }
+  }*/
 
   Future<void> _calculateOverallRating() async {
     try {
@@ -144,6 +167,7 @@ class _PgState extends State<Pg> {
       'ownerName': ownerData['name'],
       'ownerPhone': ownerData['phone'],
       'timestamp': FieldValue.serverTimestamp(),
+      'pgId':widget.pgId,
     };
 
     try {
@@ -175,6 +199,49 @@ class _PgState extends State<Pg> {
     );
   }
 
+  Future<Map<String, double>> getCoordinatesFromLocation(String locationName) async {
+    final url = 'https://nominatim.openstreetmap.org/search?q=$locationName&format=json&limit=1';
+
+    HttpClient httpClient = new HttpClient()
+      ..badCertificateCallback =
+      ((X509Certificate cert, String host, int port) => true);
+
+    HttpClientRequest request = await httpClient.getUrl(Uri.parse(url));
+    HttpClientResponse response = await request.close();
+
+    final responseData = await response.transform(utf8.decoder).join();
+    final data = json.decode(responseData);
+
+    if (data.isNotEmpty) {
+      final coordinates = data[0];
+      return {
+        'longitude': double.parse(coordinates['lon']),
+        'latitude': double.parse(coordinates['lat']),
+      };
+    } else {
+      throw Exception('No coordinates found for the location');
+    }
+  }
+  /*Future<Map<String, double>> getCoordinatesFromLocation(String locationName) async {
+    final url = 'https://nominatim.openstreetmap.org/search?q=$locationName&format=json&limit=1';
+
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data.isNotEmpty) {
+        final coordinates = data[0];
+        return {
+          'longitude': double.parse(coordinates['lon']),
+          'latitude': double.parse(coordinates['lat']),
+        };
+      } else {
+        throw Exception('No coordinates found for the location');
+      }
+    } else {
+      throw Exception('Failed to get coordinates');
+    }
+  }*/
+
   Future<void> _submitReview(double rating, String reviewText) async {
     final review = {
       'rating': rating,
@@ -194,6 +261,8 @@ class _PgState extends State<Pg> {
 
   @override
   Widget build(BuildContext context) {
+    String locationName = pgData!['location']??'No location Provided';
+    locationName=locationName+" ,Kolkata , West Bengal, India";
     if (pgData == null) {
       return Scaffold(
         appBar: AppBar(
@@ -526,6 +595,107 @@ class _PgState extends State<Pg> {
                         /*Text(pgData!['location'] ?? 'Location not available', style: TextStyle(color: Colors.grey, fontSize: 18)),*/
                       ],
                     ),
+                    SizedBox(height: 20),
+
+                    // FutureBuilder to fetch coordinates and display the map
+                    FutureBuilder<Map<String, double>>(
+                      future: getCoordinatesFromLocation(locationName),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Center(child: CircularProgressIndicator()); // Loading indicator
+                        } else if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}'); // Error message
+                        } else if (snapshot.hasData) {
+                          final latitude = snapshot.data!['latitude'];
+                          final longitude = snapshot.data!['longitude'];
+
+                          print(latitude);
+                          print(longitude);
+                          return Container(
+                            height: 300,
+                            child: FlutterMap(
+                              options: MapOptions(
+                                initialCenter: LatLng(latitude!, longitude!),
+                                initialZoom: 17.5,
+                              ),
+                              children: [
+                                TileLayer(
+                                  urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                                  subdomains: ['a', 'b', 'c'],
+                                ),
+                                PolygonLayer(
+                                  polygons: [
+                                    Polygon(
+                                      points: [
+                                        LatLng(latitude + 0.001, longitude + 0.001),
+                                        LatLng(latitude + 0.001, longitude - 0.001),
+                                        LatLng(latitude - 0.001, longitude - 0.001),
+                                        LatLng(latitude - 0.001, longitude + 0.001),
+                                      ],
+                                      color: Colors.blue.withOpacity(0.3),
+                                      borderStrokeWidth: 2.0,
+                                      borderColor: Colors.blue,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                        return Text('No data available');
+                      },
+                    ),
+                    /*FutureBuilder<Map<String, double>>(
+                      future: getCoordinatesFromLocation(locationName),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Center(child: CircularProgressIndicator()); // Loading indicator
+                        } else if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}'); // Error message
+                        } else if (snapshot.hasData) {
+                          final latitude = snapshot.data!['latitude'];
+                          final longitude = snapshot.data!['longitude'];
+                          print("-----------------------------------------------");
+                          print(latitude);
+                          print(longitude);
+                          return Container(
+                            height: 300,
+                            child: FlutterMap(
+                              //mapController: _mapController,
+                              options: MapOptions(
+                                // You may remove center and zoom if they cause issues.
+                                initialCenter: LatLng(latitude!, longitude!),
+                                initialZoom: 17.4,
+                              ),
+                              children: [
+                                TileLayer(
+                                  urlTemplate: "https://api.maptiler.com/maps/basic/{z}/{x}/{y}.png?key=ExmGgEXRZ4oFbM5bA3Nb",
+                                  additionalOptions: {
+                                    'key': 'ExmGgEXRZ4oFbM5bA3Nb',
+                                  },
+                                ),
+                                PolygonLayer(
+                                  polygons: [
+                                    Polygon(
+                                      points: [
+                                        LatLng(latitude! + 0.001, longitude! + 0.001),
+                                        LatLng(latitude! + 0.001, longitude! - 0.001),
+                                        LatLng(latitude! - 0.001, longitude! - 0.001),
+                                        LatLng(latitude! - 0.001, longitude! + 0.001),
+                                      ],
+                                      color: Colors.blue.withOpacity(0.3),
+                                      borderStrokeWidth: 2.0,
+                                      borderColor: Colors.blue,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                        return Text('No data available');
+                      },
+                    ),*/
                   ],
                 ),
               ),
@@ -547,6 +717,91 @@ class _PgState extends State<Pg> {
 
                         // If there are no selected details, return an empty container
                         if (selectedDetails.isEmpty) {
+                          return Center(child: Text('No images to display.'));
+                        }
+
+                        return ListView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(), // Prevents scrolling in this ListView
+                          itemCount: selectedDetails.length,
+                          itemBuilder: (context, index) {
+                            final detail = selectedDetails[index];
+                            final title = detail['title'];
+                            final images = detail['images'] as List;
+
+                            // If there are no images, display a message instead of GridView
+                            if (images.isEmpty) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 10.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      title,
+                                      style: TextStyle(
+                                        fontSize: 20.0,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(height: 10.0), // Spacing before the message
+                                    Text(
+                                      'No images available for $title.',
+                                      style: TextStyle(
+                                        fontSize: 16.0,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    SizedBox(height: 20.0), // Spacing between sections
+                                  ],
+                                ),
+                              );
+                            }
+
+                            // If there are images, display the GridView
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 10.0),
+                                  child: Text(
+                                    title,
+                                    style: TextStyle(
+                                      fontSize: 20.0,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                GridView.builder(
+                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2, // Number of columns
+                                    crossAxisSpacing: 8.0, // Horizontal spacing between images
+                                    mainAxisSpacing: 8.0, // Vertical spacing between images
+                                    childAspectRatio: 1.0, // Aspect ratio of each item (1.0 makes it square)
+                                  ),
+                                  itemCount: images.length,
+                                  shrinkWrap: true, // Allows the GridView to take up only the necessary space
+                                  physics: NeverScrollableScrollPhysics(), // Prevents scrolling in this GridView
+                                  itemBuilder: (context, imageIndex) {
+                                    final imageUrl = images[imageIndex];
+
+                                    return Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8.0),
+                                        image: DecorationImage(
+                                          image: NetworkImage(imageUrl),
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                SizedBox(height: 20.0), // Spacing between sections
+                              ],
+                            );
+                          },
+                        );
+
+                        /*if (selectedDetails.isEmpty) {
                           return Center(child: Text('No images to display.'));
                         }
 
@@ -602,10 +857,48 @@ class _PgState extends State<Pg> {
                               ],
                             );
                           },
-                        );
+                        );*/
                       },
                     ),
                     SizedBox(height: 10,),
+                    if (pgData != null && pgData!['other_pics'] != null && pgData!['other_pics'].isNotEmpty) ...[
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Other Pictures',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 10), // Add some spacing before the GridView
+                      GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2, // Number of columns
+                          crossAxisSpacing: 8.0, // Horizontal spacing between images
+                          mainAxisSpacing: 8.0, // Vertical spacing between images
+                          childAspectRatio: 1.0, // Aspect ratio of each item (1.0 makes it square)
+                        ),
+                        itemCount: pgData!['other_pics'].length,
+                        shrinkWrap: true, // Allows the GridView to take up only the necessary space
+                        physics: NeverScrollableScrollPhysics(), // Prevents scrolling in this GridView
+                        itemBuilder: (context, imageIndex) {
+                          final imageUrl = pgData!['other_pics'][imageIndex];
+
+                          return Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8.0),
+                              image: DecorationImage(
+                                image: NetworkImage(imageUrl),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ] else SizedBox.shrink() // This will render nothing if there are no other_pics
+                    /*SizedBox(height: 10,),
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -639,7 +932,7 @@ class _PgState extends State<Pg> {
                           ),
                         );
                       },
-                    ),
+                    ),*/
                   ],
                 ),
               ),
@@ -835,9 +1128,38 @@ class _PgState extends State<Pg> {
               ),
             ),
             ElevatedButton(
-              onPressed: _bookNow,
+              onPressed: () async {
+                bool confirm = await showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('Confirmation'),
+                      content: Text('Are you sure you want to book this PG?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(false); // Dismiss and return false
+                          },
+                          child: Text('No'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(true); // Dismiss and return true
+                          },
+                          child: Text('Yes'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+
+                if (confirm == true) {
+                  _bookNow(); // Call the booking function if the user confirms
+                }
+              },
               style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.blue, backgroundColor: Colors.white,
+                foregroundColor: Colors.blue,
+                backgroundColor: Colors.white,
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 30),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(80.0),
@@ -847,7 +1169,8 @@ class _PgState extends State<Pg> {
                 'Book Now',
                 style: TextStyle(color: Colors.blue, fontSize: 20),
               ),
-            ),
+            )
+
           ],
         ),
       ),
