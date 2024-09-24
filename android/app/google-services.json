@@ -7,9 +7,66 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:418138450220:android:dec59e885959b176642489",
+        "android_client_info": {
+          "package_name": "com.example.admin_my_perfect_pg"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCG8d6KhvmUCIV_T6VI748rSPvK1WeGvMI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:418138450220:android:7366226c8a65e942642489",
         "android_client_info": {
           "package_name": "com.example.myperfectpg"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCG8d6KhvmUCIV_T6VI748rSPvK1WeGvMI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:418138450220:android:24010fe38971ea7b642489",
+        "android_client_info": {
+          "package_name": "com.example.owner_myperfect_pg"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCG8d6KhvmUCIV_T6VI748rSPvK1WeGvMI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:418138450220:android:00884de3f3d3e001642489",
+        "android_client_info": {
+          "package_name": "com.tech.myperfectpg"
         }
       },
       "oauth_client": [],

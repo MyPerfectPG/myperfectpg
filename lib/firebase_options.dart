@@ -58,7 +58,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyCG8d6KhvmUCIV_T6VI748rSPvK1WeGvMI',
-    appId: '1:418138450220:android:7366226c8a65e942642489',
+    appId: '1:418138450220:android:00884de3f3d3e001642489',
     messagingSenderId: '418138450220',
     projectId: 'myperfectpg-f6a53',
     storageBucket: 'myperfectpg-f6a53.appspot.com',

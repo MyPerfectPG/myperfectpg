@@ -1,4 +1,4 @@
-package com.example.myperfectpg;
+package com.tech.myperfectpg;
 
 import io.flutter.embedding.android.FlutterActivity;
 
